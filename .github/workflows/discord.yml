@@ -1,4 +1,4 @@
-name: GitHub to Discord
+name: Notify Discord
 
 on:
   push:
@@ -12,6 +12,6 @@ jobs:
       - name: Send commit message to Discord
         run: |
           curl -H "Content-Type: application/json" \
-          -X POST \
-          -d "{\"content\": \"Push detected on $GITHUB_REPOSITORY by $GITHUB_ACTOR: $GITHUB_SHA\"}" \
-          ${{ secrets.DISCORD_WEBHOOK }}
+            -X POST \
+            -d "{\"content\": \"Push detected on $GITHUB_REPOSITORY by $GITHUB_ACTOR: $GITHUB_SHA\"}" \
+            ${{ secrets.DISCORD_WEBHOOK }}
