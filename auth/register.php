@@ -1,3 +1,42 @@
+<?php
+if (isset($_POST['register'])) {
+    $nama = $_POST['nama'];
+    $username = $_POST['username'];
+    $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+    $role = $_POST['role'];
+
+    // Koneksi ke database
+    $conn = new mysqli("localhost", "root", "", "namadatabase");
+
+    if ($conn->connect_error) {
+        die("Koneksi gagal: " . $conn->connect_error);
+    }
+
+    // Cek apakah username sudah ada
+    $check = $conn->prepare("SELECT username FROM users WHERE username=?");
+    $check->bind_param("s", $username);
+    $check->execute();
+    $result = $check->get_result();
+
+    if ($result->num_rows > 0) {
+        echo "<script>alert('Username sudah terdaftar!'); window.location.href='register.php';</script>";
+    } else {
+        // Simpan ke database
+        $stmt = $conn->prepare("INSERT INTO users (nama, username, password, role) VALUES (?, ?, ?, ?)");
+        $stmt->bind_param("ssss", $nama, $username, $password, $role);
+
+        if ($stmt->execute()) {
+            // ✅ Redirect otomatis ke login.php setelah registrasi sukses
+            header("Location: login.php");
+            exit();
+        } else {
+            echo "<script>alert('Registrasi gagal!'); window.location.href='register.php';</script>";
+        }
+    }
+}
+?>
+
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
