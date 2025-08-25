@@ -17,5 +17,5 @@ jobs:
 
           curl -H "Content-Type: application/json" \
             -X POST \
-            -d "{\"content\": \"📌 **New Commit on $GITHUB_REPOSITORY**\n👤 Author: $AUTHOR\n📝 Message: $COMMIT_MESSAGE\n🔗 [View Commit]($COMMIT_URL)\"}" \
+            -d "{\"content\": \"📌 **New Commit on $GITHUB_REPOSITORY**\n👤 Author: $AUTHOR_NAME\n📝 Message: $COMMIT_MESSAGE\n🔗 [View Commit]($COMMIT_URL)\"}" \
             ${{ secrets.DISCORD_WEBHOOKS }}
