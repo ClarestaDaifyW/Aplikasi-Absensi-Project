@@ -1,0 +1,45 @@
+# =========================================
+# PHP / Laragon Project .gitignore
+# =========================================
+
+# Jangan upload folder config
+/config/
+
+# Tapi tetap upload file contoh env
+!.env.example
+
+# Jangan upload file konfigurasi IDE/editor
+.vscode/
+.idea/
+
+# Jangan upload file sistem OS
+.DS_Store
+Thumbs.db
+
+# Jangan upload cache, log, dan temporary files
+*.log
+*.tmp
+*.cache
+*.bak
+*.swp
+*.swo
+
+# Composer dependencies
+/vendor/
+
+# Node.js dependencies (kalau pakai frontend build)
+node_modules/
+
+# Build outputs / dist
+dist/
+build/
+out/
+
+# PHP built-in cache
+*.phpunit.result.cache
+.phpunit.cache/
+composer.lock
+
+# =========================================
+# END
+# =========================================
