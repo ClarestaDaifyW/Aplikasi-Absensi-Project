@@ -11,7 +11,11 @@ jobs:
     steps:
       - name: Send commit message to Discord
         run: |
+          COMMIT_MESSAGE=$(jq -r '.commits[0].message' $GITHUB_EVENT_PATH)
+          COMMIT_URL=$(jq -r '.commits[0].url' $GITHUB_EVENT_PATH)
+          AUTHOR=$(jq -r '.commits[0].author.name' $GITHUB_EVENT_PATH)
+
           curl -H "Content-Type: application/json" \
             -X POST \
-            -d "{\"content\": \"Push detected on $GITHUB_REPOSITORY by $GITHUB_ACTOR: $GITHUB_SHA\"}" \
+            -d "{\"content\": \"📌 **New Commit on $GITHUB_REPOSITORY**\n👤 Author: $AUTHOR\n📝 Message: $COMMIT_MESSAGE\n🔗 [View Commit]($COMMIT_URL)\"}" \
             ${{ secrets.DISCORD_WEBHOOKS }}
