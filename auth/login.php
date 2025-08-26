@@ -1,6 +1,6 @@
 <?php
 session_start();
-include 'config/db.php';
+include 'config/koneksi.php';
 
 // Tampilkan pesan sukses registrasi jika ada
 if (isset($_SESSION['register_success'])) {
