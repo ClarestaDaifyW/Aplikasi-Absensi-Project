@@ -1,31 +1,43 @@
 <?php
 session_start();
-include '../config/koneksi.php';
+include 'config/db.php';
 
-$pesan = '';
-if (isset($_POST['login'])) {
-  $username = $_POST['username'];
-  $password = $_POST['password'];
+// Tampilkan pesan sukses registrasi jika ada
+if (isset($_SESSION['register_success'])) {
+    $success = $_SESSION['register_success'];
+    unset($_SESSION['register_success']);
+}
 
-  $query = mysqli_query($koneksi, "SELECT * FROM users WHERE username='$username'");
-  $data = mysqli_fetch_assoc($query);
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $username = $_POST['username'];
+    $password = $_POST['password'];
 
-  if ($data && password_verify($password, $data['password'])) {
-    $_SESSION['user_id'] = $data['id'];
-    $_SESSION['role'] = $data['role'];
-
-    if ($data['role'] == 'siswa') {
-      header("Location: ../siswa/dashboard.php");
+    // Validasi input
+    if (empty($username) || empty($password)) {
+        $error = "Username dan password harus diisi!";
     } else {
-      header("Location: ../pembimbing/dashboard.php");
+        $sql = "SELECT * FROM users WHERE username=?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("s", $username);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        if ($result->num_rows === 0) {
+            $error = "Username atau password salah!";
+        } else {
+            $user = $result->fetch_assoc();
+            
+            if (password_verify($password, $user['password'])) {
+                $_SESSION['user'] = $user;
+                header("Location: " . ($user['role'] == 'pembimbing' ? "pembimbing/dashboard.php" : "siswa/dashboard.php"));
+                exit;
+            } else {
+                $error = "Username atau password salah!";
+            }
+        }
     }
-    exit;
-  } else {
-    $pesan = "Login gagal! Username atau password salah.";
-  }
 }
 ?>
-
 <style>
 * {
   margin: 0;

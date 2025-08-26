@@ -1,6 +1,12 @@
 <?php
-$koneksi = mysqli_connect("localhost", "root", "", "magang_edusoft");
-if (!$koneksi) {
-    die("Koneksi gagal: " . mysqli_connect_error());
+$host = "localhost";
+$user = "root";
+$pass = "";
+$dbname = "magang_edusoft";
+
+$conn = new mysqli($host, $user, $pass, $dbname);
+
+if ($conn->connect_error) {
+    die("Koneksi gagal: " . $conn->connect_error);
 }
 ?>

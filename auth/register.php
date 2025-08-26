@@ -1,3 +1,46 @@
+<?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+session_start();
+include 'config/db.php';
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $nama = trim($_POST['nama']);
+    $username = trim($_POST['username']);
+    $passwordRaw = $_POST['password'];
+    $role = $_POST['role'];
+
+    // Validasi input
+    if (empty($nama) || empty($username) || empty($passwordRaw) || empty($role)) {
+        $error = "Semua field harus diisi!";
+    } elseif (strlen($passwordRaw) < 6) {
+        $error = "Password minimal 6 karakter.";
+    } else {
+        // Cek apakah username sudah ada
+        $check_stmt = $conn->prepare("SELECT id FROM users WHERE username = ?");
+        $check_stmt->bind_param("s", $username);
+        $check_stmt->execute();
+        $check_result = $check_stmt->get_result();
+        
+        if ($check_result->num_rows > 0) {
+            $error = "Username sudah digunakan. Silakan pilih username lain.";
+        } else {
+            $password = password_hash($passwordRaw, PASSWORD_DEFAULT);
+            $stmt = $conn->prepare("INSERT INTO users (nama, username, password, role) VALUES (?, ?, ?, ?)");
+            $stmt->bind_param("ssss", $nama, $username, $password, $role);
+
+            if ($stmt->execute()) {
+                $_SESSION['register_success'] = "Registrasi berhasil! Silakan login.";
+                header("Location: login.php");
+                exit;
+            } else {
+                $error = "Gagal mendaftar: " . $stmt->error;
+            }
+        }
+    }
+}
+?>
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
