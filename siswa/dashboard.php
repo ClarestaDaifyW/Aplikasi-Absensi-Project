@@ -11,45 +11,45 @@ $user_id = $_SESSION['user_id'];
 $tanggal_hari_ini = date("Y-m-d");
 
 // Ambil presensi hari ini
-$q_presensi = mysqli_query($koneksi, "SELECT * FROM presensi WHERE user_id='$user_id' AND tanggal='$tanggal_hari_ini'");
+$q_presensi = mysqli_query($conn, "SELECT * FROM presensi WHERE user_id='$user_id' AND tanggal='$tanggal_hari_ini'");
 $presensi = mysqli_fetch_assoc($q_presensi);
 
 // Ambil aktivitas hari ini
-$q_aktivitas = mysqli_query($koneksi, "SELECT * FROM aktivitas WHERE user_id='$user_id' AND tanggal='$tanggal_hari_ini'");
+$q_aktivitas = mysqli_query($conn, "SELECT * FROM aktivitas WHERE user_id='$user_id' AND tanggal='$tanggal_hari_ini'");
 $aktivitas = mysqli_fetch_assoc($q_aktivitas);
 
 // Data untuk profile
-$q_user = mysqli_query($koneksi, "SELECT * FROM users WHERE id='$user_id'");
+$q_user = mysqli_query($conn, "SELECT * FROM users WHERE id='$user_id'");
 $user = mysqli_fetch_assoc($q_user);
 
 // Proses update profile
 if (isset($_POST['update_profile'])) {
-    $new_nama = mysqli_real_escape_string($koneksi, $_POST['edit_nama']);
-    $new_username = mysqli_real_escape_string($koneksi, $_POST['edit_username']);
-    $new_kelas = mysqli_real_escape_string($koneksi, $_POST['edit_kelas']);
-    $new_jurusan = mysqli_real_escape_string($koneksi, $_POST['edit_jurusan']);
+    $new_nama = mysqli_real_escape_string($conn, $_POST['edit_nama']);
+    $new_username = mysqli_real_escape_string($conn, $_POST['edit_username']);
+    $new_kelas = mysqli_real_escape_string($conn, $_POST['edit_kelas']);
+    $new_jurusan = mysqli_real_escape_string($conn, $_POST['edit_jurusan']);
     
     // Validasi input
     if (empty($new_nama) || empty($new_username) || empty($new_kelas) || empty($new_jurusan)) {
         $error_message = "Semua field harus diisi!";
     } else {
         // Cek apakah username sudah digunakan user lain
-        $check_username = mysqli_query($koneksi, "SELECT id FROM users WHERE username='$new_username' AND id != '$user_id'");
+        $check_username = mysqli_query($conn, "SELECT id FROM users WHERE username='$new_username' AND id != '$user_id'");
         if (mysqli_num_rows($check_username) > 0) {
             $error_message = "Username sudah digunakan oleh user lain!";
         } else {
             // Update data
-            $update = mysqli_query($koneksi, "UPDATE users SET nama='$new_nama', username='$new_username', kelas='$new_kelas', jurusan='$new_jurusan' WHERE id='$user_id'");
+            $update = mysqli_query($conn, "UPDATE users SET nama='$new_nama', username='$new_username', kelas='$new_kelas', jurusan='$new_jurusan' WHERE id='$user_id'");
             
             if ($update) {
                 $_SESSION['username'] = $new_username;
                 $success_message = "Profil berhasil diupdate!";
                 
                 // Refresh data user
-                $q_user = mysqli_query($koneksi, "SELECT * FROM users WHERE id='$user_id'");
+                $q_user = mysqli_query($conn, "SELECT * FROM users WHERE id='$user_id'");
                 $user = mysqli_fetch_assoc($q_user);
             } else {
-                $error_message = "Gagal update profil! " . mysqli_error($koneksi);
+                $error_message = "Gagal update profil! " . mysqli_error($conn);
             }
         }
     }
@@ -487,7 +487,7 @@ if (
                         <tbody>
                             <?php
                             // Ambil riwayat presensi
-                            $q_riwayat = mysqli_query($koneksi, "SELECT * FROM presensi WHERE user_id='$user_id' ORDER BY tanggal DESC LIMIT 10");
+                            $q_riwayat = mysqli_query($conn, "SELECT * FROM presensi WHERE user_id='$user_id' ORDER BY tanggal DESC LIMIT 10");
                             while ($row = mysqli_fetch_assoc($q_riwayat)) :
                             ?>
                             <tr style="border-bottom: 1px solid #f1f5f9;">

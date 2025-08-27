@@ -9,15 +9,16 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'pembimbing') {
 }
 
 // Ambil semua data aktivitas siswa (JOIN dengan nama user)
-$query = mysqli_query($koneksi, "
+$query = mysqli_query($conn, "
   SELECT aktivitas.*, users.nama 
+
   FROM aktivitas 
   JOIN users ON aktivitas.user_id = users.id
   ORDER BY tanggal DESC
 ");
 
 // Ambil data presensi siswa untuk rekap (contoh, bisa dikembangkan)
-$query_presensi = mysqli_query($koneksi, "
+$query_presensi = mysqli_query($conn, "
   SELECT users.nama, COUNT(presensi.id) as hadir
   FROM users
   LEFT JOIN presensi ON users.id = presensi.user_id
@@ -26,7 +27,7 @@ $query_presensi = mysqli_query($koneksi, "
 ");
 
 // Ambil data siswa
-$query_siswa = mysqli_query($koneksi, "SELECT * FROM users WHERE role='siswa' ORDER BY nama ASC");
+$query_siswa = mysqli_query($conn, "SELECT * FROM users WHERE role='siswa' ORDER BY nama ASC");
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -350,7 +351,7 @@ $query_siswa = mysqli_query($koneksi, "SELECT * FROM users WHERE role='siswa' OR
                         <div class="number">
                             <?php
                             // Total siswa
-                            $q_total_siswa = mysqli_query($koneksi, "SELECT COUNT(*) as total FROM users WHERE role='siswa'");
+                            $q_total_siswa = mysqli_query($conn, "SELECT COUNT(*) as total FROM users WHERE role='siswa'");
                             $total_siswa = mysqli_fetch_assoc($q_total_siswa)['total'] ?? 0;
                             echo $total_siswa;
                             ?>
@@ -362,7 +363,7 @@ $query_siswa = mysqli_query($koneksi, "SELECT * FROM users WHERE role='siswa' OR
                         <div class="number">
                             <?php
                             // Menunggu validasi
-                            $q_pending = mysqli_query($koneksi, "SELECT COUNT(*) as total FROM aktivitas WHERE status_validasi='pending'");
+                            $q_pending = mysqli_query($conn, "SELECT COUNT(*) as total FROM aktivitas WHERE status_validasi='pending'");
                             $pending = mysqli_fetch_assoc($q_pending)['total'] ?? 0;
                             echo $pending;
                             ?>
@@ -374,7 +375,7 @@ $query_siswa = mysqli_query($koneksi, "SELECT * FROM users WHERE role='siswa' OR
                         <div class="number">
                             <?php
                             // Sudah divalidasi khusus siswa
-                            $q_valid = mysqli_query($koneksi, "
+                            $q_valid = mysqli_query($conn, "
                                 SELECT COUNT(*) as total 
                                 FROM aktivitas 
                                 JOIN users ON aktivitas.user_id = users.id
@@ -392,7 +393,7 @@ $query_siswa = mysqli_query($koneksi, "SELECT * FROM users WHERE role='siswa' OR
                             <?php
                             // Tingkat kehadiran hari ini
                             $today = date('Y-m-d');
-                            $q_hadir = mysqli_query($koneksi, "SELECT COUNT(DISTINCT user_id) as hadir FROM presensi WHERE tanggal='$today'");
+                            $q_hadir = mysqli_query($conn, "SELECT COUNT(DISTINCT user_id) as hadir FROM presensi WHERE tanggal='$today'");
                             $hadir = mysqli_fetch_assoc($q_hadir)['hadir'] ?? 0;
                             $persen = $total_siswa > 0 ? round(($hadir / $total_siswa) * 100) : 0;
                             echo $persen . '%';
@@ -407,7 +408,7 @@ $query_siswa = mysqli_query($koneksi, "SELECT * FROM users WHERE role='siswa' OR
                     <h3><span class="icon">🔔</span>Aktivitas Terbaru</h3>
                     <div>
                         <?php
-                        $q_recent = mysqli_query($koneksi, "
+                        $q_recent = mysqli_query($conn, "
                             SELECT aktivitas.*, users.nama 
                             FROM aktivitas 
                             JOIN users ON aktivitas.user_id = users.id
@@ -537,14 +538,16 @@ $query_siswa = mysqli_query($koneksi, "SELECT * FROM users WHERE role='siswa' OR
                             <tbody>
                                 <?php
                                 // Ambil data presensi detail per siswa
-                                $q_rekap = mysqli_query($koneksi, "
-                                    SELECT users.nama, presensi.tanggal, presensi.jam_masuk, presensi.jam_keluar
-                                    FROM users
-                                    LEFT JOIN presensi ON users.id = presensi.user_id
-                                    WHERE users.role = 'siswa'
-                                    ORDER BY presensi.tanggal DESC, users.nama ASC
-                                    LIMIT 50
-                                ");
+$q_rekap = mysqli_query($conn, "
+    SELECT users.nama, presensi.tanggal, presensi.jam_masuk, presensi.jam_keluar
+    FROM users
+    JOIN presensi ON users.id = presensi.user_id
+    WHERE users.role = 'siswa'
+      AND presensi.jam_masuk IS NOT NULL
+      AND presensi.jam_keluar IS NOT NULL
+    ORDER BY presensi.tanggal DESC, users.nama ASC
+    LIMIT 50
+");
                                 while ($row = mysqli_fetch_assoc($q_rekap)) :
                                     $total_jam = '-';
                                     if ($row['jam_masuk'] && $row['jam_keluar']) {
@@ -558,7 +561,7 @@ $query_siswa = mysqli_query($koneksi, "SELECT * FROM users WHERE role='siswa' OR
                                 ?>
                                 <tr>
                                     <td><?= htmlspecialchars($row['nama']) ?></td>
-                                    <td><?= htmlspecialchars($row['tanggal']) ?></td>
+                                    <td><?= htmlspecialchars($row['tanggal'] ?? '-')?></td>
                                     <td><?= htmlspecialchars($row['jam_masuk'] ?? '-') ?></td>
                                     <td>
                                         <?php if ($row['jam_keluar']) : ?>
@@ -582,37 +585,39 @@ $query_siswa = mysqli_query($koneksi, "SELECT * FROM users WHERE role='siswa' OR
                 </div>
             </div>
             <!-- Data Siswa Section -->
-            <div id="siswa" class="content-section">
-                <div class="content-header">
-                    <h1>Data Siswa</h1>
-                    <p>Daftar siswa yang sudah terdaftar di sistem</p>
-                </div>
-                <div class="card">
-                    <h3><span class="icon">👥</span>Daftar Siswa</h3>
-                    <div class="table-container">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Nama</th>
-                                    <th>Username</th>
-                                    <th>Jurusan</th>
-                                    <th>Kelas</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php while ($siswa = mysqli_fetch_assoc($query_siswa)) : ?>
-                                <tr>
-                                    <td><?= htmlspecialchars($siswa['nama']) ?></td>
-                                    <td><?= htmlspecialchars($siswa['username']) ?></td>
-                                    <td><?= htmlspecialchars($siswa['jurusan'] ?? '-') ?></td>
-                                    <td><?= htmlspecialchars($siswa['kelas'] ?? '-') ?></td>
-                                </tr>
-                                <?php endwhile; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+           <!-- Data Siswa Section -->
+<div id="siswa" class="content-section">
+    <div class="content-header">
+        <h1>Data Siswa</h1>
+        <p>Daftar siswa yang sudah terdaftar di sistem</p>
+    </div>
+    <div class="card">
+        <h3><span class="icon">👥</span>Daftar Siswa</h3>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nama</th>
+                        <th>Username</th>
+                        <th>Jurusan</th>
+                        <th>Kelas</th>
+                    </tr>
+                </thead>
+                <tbody>
+            
+                    <?php while ($siswa = mysqli_fetch_assoc($query_siswa)) : ?>
+                    <tr>
+                        <td><?= htmlspecialchars((string)($siswa['nama'] ?? '-')) ?></td>
+                        <td><?= htmlspecialchars((string)($siswa['username'] ?? '-')) ?></td>
+<td><?= htmlspecialchars($siswa['jurusan'] !== null ? $siswa['jurusan'] : '-') ?></td>
+<td><?= htmlspecialchars($siswa['kelas'] !== null ? $siswa['kelas'] : '-') ?></td>
+                    </tr>
+                    <?php endwhile; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
         </div>
     </div>
     <script>
