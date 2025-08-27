@@ -1,4 +1,5 @@
 <?php
+session_start();
 // Aktifkan error reporting untuk debugging
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
@@ -43,10 +44,11 @@ if (isset($_POST['register'])) {
         $check->execute();
         $result = $check->get_result();
 
-        if ($result->num_rows > 0) {
-            echo "<script>alert('Username sudah terdaftar!'); window.location.href='register.php';</script>";
-            exit();
-        }
+      if ($result->num_rows > 0) {
+    $_SESSION['register_error'] = "Akun sudah terdaftar, silahkan masuk kembali!";
+    header("Location: register.php");
+    exit();
+}
 
         // Hash password
         $hashed_password = password_hash($password, PASSWORD_DEFAULT);
@@ -576,6 +578,105 @@ $stmt = $conn->prepare("INSERT INTO users (nama, username, password, role, creat
             padding-left: 50px;
             padding-right: 55px;
         }
+
+        .modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(255, 255, 255, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+.modal-box {
+    background: #fff;
+    padding: 32px 28px 24px 28px;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(44,62,80,0.18);
+    text-align: center;
+    max-width: 340px;
+    width: 100%;
+    position: relative;
+    animation: slideInDown 0.4s;
+}
+.modal-box p {
+    font-size: 17px;
+    color: #dc2626;
+    margin-bottom: 18px;
+    font-weight: 500;
+}
+.modal-link {
+    display: inline-block;
+    color: #ffffff;
+    background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    padding: 12px 24px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    margin-top: 12px;
+    transition: all 0.3s ease;
+    text-align: center;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    border: none;
+    cursor: pointer;
+    min-width: 140px;
+}
+
+.modal-link:hover {
+    background: linear-gradient(135deg, #5a0bb5 0%, #1e5de6 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+    color: #ffffff;
+}
+
+.modal-link:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(255, 253, 253, 0.52);
+}
+
+.modal-link:focus {
+    outline: 2px solid #ffffff;
+    outline-offset: 2px;
+}
+
+/* Untuk teks di dalam modal */
+.modal-content {
+    color: #333333;
+    font-weight: 500;
+    line-height: 1.5;
+}
+
+.modal-content .error-message {
+    color: #dc3545;
+    font-weight: 600;
+    margin-bottom: 16px;
+}
+
+/* Alternatif untuk tombol dengan kontras lebih tinggi */
+.modal-link.high-contrast {
+    background: #2563eb;
+    color: #ffffff;
+    border: 2px solid #1d4ed8;
+}
+
+.modal-link.high-contrast:hover {
+    background: #1d4ed8;
+    border-color: #1e40af;
+    color: #ffffff;
+}
+.modal-close {
+    position: absolute;
+    top: 10px; right: 16px;
+    font-size: 22px;
+    color: #888;
+    cursor: pointer;
+    font-weight: bold;
+    transition: color 0.2s;
+}
+.modal-close:hover {
+    color: #dc2626;
+}
     </style>
 </head>
 <body>
@@ -601,6 +702,16 @@ $stmt = $conn->prepare("INSERT INTO users (nama, username, password, role, creat
             <button class="notification-close" onclick="this.parentElement.style.display='none'">&times;</button>
         </div> -->
         
+<?php if (isset($_SESSION['register_error'])): ?>
+<div id="modalError" class="modal-overlay">
+    <div class="modal-box">
+        <span class="modal-close" onclick="closeModal()">&times;</span>
+        <p><?= $_SESSION['register_error']; ?></p>
+        <a href="login.php" class="modal-link">Masuk Sekarang</a>
+    </div>
+</div>
+<?php unset($_SESSION['register_error']); endif; ?>
+
 <form method="POST" action="register.php">
     <div class="form-group name">
         <input name="nama" placeholder="Nama Lengkap" required>
@@ -613,11 +724,17 @@ $stmt = $conn->prepare("INSERT INTO users (nama, username, password, role, creat
     <div class="form-group password">
         <input name="password" type="password" placeholder="Password" required id="password">
         <span class="password-toggle" onclick="togglePassword()">
-            <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-            </svg>
-        </span>
+    <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <!-- Mata terbuka -->
+    <path id="eyeOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+    <path id="eyeOpen2" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+    <!-- Mata tertutup (disembunyikan dulu) -->
+    <path id="eyeClosed" visibility="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M17.94 17.94A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029M6.343 6.343A9.956 9.956 0 0112 5c4.478 0 8.268 2.943 9.542 7a9.97 9.97 0 01-1.609 3.063M9.88 9.88a3 3 0 014.24 4.24M9.88 9.88L6.343 6.343M14.12 14.12l3.537 3.537" />
+</svg>
+</span>
     </div>
     
     <div class="form-group role">
@@ -676,24 +793,24 @@ $stmt = $conn->prepare("INSERT INTO users (nama, username, password, role, creat
 }
 
         // Password toggle functionality
-        function togglePassword() {
-            const passwordInput = document.getElementById('password');
-            const eyeIcon = document.getElementById('eyeIcon');
-            
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
-                eyeIcon.innerHTML = `
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
-                `;
-            } else {
-                passwordInput.type = 'password';
-                eyeIcon.innerHTML = `
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                `;
-            }
-        }
+     function togglePassword() {
+    const passwordInput = document.getElementById('password');
+    const eyeOpen = document.getElementById('eyeOpen');
+    const eyeOpen2 = document.getElementById('eyeOpen2');
+    const eyeClosed = document.getElementById('eyeClosed');
 
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        eyeOpen.setAttribute('visibility', 'hidden');
+        eyeOpen2.setAttribute('visibility', 'hidden');
+        eyeClosed.setAttribute('visibility', 'visible');
+    } else {
+        passwordInput.type = 'password';
+        eyeOpen.setAttribute('visibility', 'visible');
+        eyeOpen2.setAttribute('visibility', 'visible');
+        eyeClosed.setAttribute('visibility', 'hidden');
+    }
+}
         // Add loading animation on form submit
         document.querySelector('form').addEventListener('submit', function(e) {
             const button = document.querySelector('button[name="register"]');
@@ -711,6 +828,10 @@ $stmt = $conn->prepare("INSERT INTO users (nama, username, password, role, creat
                 this.parentElement.style.transform = 'scale(1)';
             });
         });
+
+        function closeModal() {
+    document.getElementById('modalError').style.display = 'none';
+}
     </script>
 </body>
 </html>

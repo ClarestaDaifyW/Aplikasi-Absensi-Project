@@ -300,12 +300,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <input name="username" placeholder="Username" required>
     <div style="position:relative;">
       <input id="pw" name="password" type="password" placeholder="Password" required style="padding-right:38px;">
-      <span onclick="togglePw()" id="toggleIcon" style="position:absolute;top:50%;right:10px;transform:translateY(-50%);cursor:pointer;">
-        <!-- Mata terbuka (default) -->
-        <svg id="eyeOpen" xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24"><path stroke="#888" stroke-width="2" d="M1.5 12S5.5 5.5 12 5.5 22.5 12 22.5 12 18.5 18.5 12 18.5 1.5 12 1.5 12Z"/><circle cx="12" cy="12" r="3.5" stroke="#888" stroke-width="2"/></svg>
-        <!-- Mata terpejam (hidden) -->
-        <svg id="eyeClosed" xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" style="display:none;"><path stroke="#888" stroke-width="2" d="M3 3l18 18M1.5 12S5.5 5.5 12 5.5c2.2 0 4.1.6 5.7 1.5M22.5 12S18.5 18.5 12 18.5c-2.2 0-4.1-.6-5.7-1.5"/><circle cx="12" cy="12" r="3.5" stroke="#888" stroke-width="2"/></svg>
-      </span>
+     <span onclick="togglePw()" id="toggleIcon" style="position:absolute;top:50%;right:10px;transform:translateY(-50%);cursor:pointer;">
+  <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24">
+    <path id="eyePath" stroke="#888" stroke-width="2" d="M1.5 12S5.5 5.5 12 5.5 22.5 12 22.5 12 18.5 18.5 12 18.5 1.5 12 1.5 12Z"/>
+    <circle id="eyeCircle" cx="12" cy="12" r="3.5" stroke="#888" stroke-width="2"/>
+  </svg>
+</span>
     </div>
     <button name="login">Login</button>
   </form>
@@ -315,16 +315,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <script>
 function togglePw() {
   const pw = document.getElementById('pw');
-  const eyeOpen = document.getElementById('eyeOpen');
-  const eyeClosed = document.getElementById('eyeClosed');
+  const eyePath = document.getElementById('eyePath');
+  const eyeCircle = document.getElementById('eyeCircle');
   if (pw.type === "password") {
     pw.type = "text";
-    eyeOpen.style.display = "none";
-    eyeClosed.style.display = "inline";
+    // Mata terpejam (ubah path dan hilangkan pupil)
+    eyePath.setAttribute("d", "M3 3l18 18M1.5 12S5.5 5.5 12 5.5c2.2 0 4.1.6 5.7 1.5M22.5 12S18.5 18.5 12 18.5c-2.2 0-4.1-.6-5.7-1.5");
+    eyeCircle.style.display = "none";
   } else {
     pw.type = "password";
-    eyeOpen.style.display = "inline";
-    eyeClosed.style.display = "none";
+    // Mata terbuka (path dan pupil normal)
+    eyePath.setAttribute("d", "M1.5 12S5.5 5.5 12 5.5 22.5 12 22.5 12 18.5 18.5 12 18.5 1.5 12 1.5 12Z");
+    eyeCircle.style.display = "inline";
   }
 }
 </script>
