@@ -48,8 +48,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $user = $result->fetch_assoc();
             
             if (password_verify($password, $user['password'])) {
-                $_SESSION['user'] = $user;
-                header("Location: " . ($user['role'] == 'pembimbing' ? "pembimbing/dashboard.php" : "siswa/dashboard.php"));
+                // Simpan hanya id dan role ke session
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['role'] = $user['role'];
+                // Redirect sesuai role
+                if ($user['role'] == 'pembimbing') {
+                    header("Location: ../pembimbing/dashboard.php");
+                } else {
+                    header("Location: ../siswa/dashboard.php");
+                }
                 exit;
             } else {
                 $error = "Username atau password salah!";
@@ -57,6 +64,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
 }
+// ...existing code...
 ?>
 <!DOCTYPE html>
 <html lang="id">

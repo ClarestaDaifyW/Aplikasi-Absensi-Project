@@ -4,12 +4,20 @@ if (isset($_POST['register'])) {
     $username = $_POST['username'];
     $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
     $role = $_POST['role'];
+    $kelas = "";
+    $jurusan = "";
 
     // Koneksi ke database
-    $conn = new mysqli("localhost", "root", "", "namadatabase");
+    $conn = new mysqli("localhost", "root", "", "magang_edusoft");
 
     if ($conn->connect_error) {
         die("Koneksi gagal: " . $conn->connect_error);
+    }
+
+    // Validasi field tidak boleh kosong
+    if (empty($nama) || empty($username) || empty($_POST['password']) || empty($role)) {
+        echo "<script>alert('Semua field harus diisi!'); window.location.href='register.php';</script>";
+        exit();
     }
 
     // Cek apakah username sudah ada
@@ -21,16 +29,15 @@ if (isset($_POST['register'])) {
     if ($result->num_rows > 0) {
         echo "<script>alert('Username sudah terdaftar!'); window.location.href='register.php';</script>";
     } else {
-        // Simpan ke database
-        $stmt = $conn->prepare("INSERT INTO users (nama, username, password, role) VALUES (?, ?, ?, ?)");
-        $stmt->bind_param("ssss", $nama, $username, $password, $role);
+        // Simpan ke database, kelas dan jurusan diisi NULL
+        $stmt = $conn->prepare("INSERT INTO users (nama, username, password, role, kelas, jurusan) VALUES (?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("ssssss", $nama, $username, $password, $role, $kelas, $jurusan);
 
         if ($stmt->execute()) {
-            // ✅ Redirect otomatis ke login.php setelah registrasi sukses
             header("Location: login.php");
             exit();
         } else {
-            echo "<script>alert('Registrasi gagal!'); window.location.href='register.php';</script>";
+            echo "<script>alert('Registrasi gagal: " . $conn->error . "'); window.location.href='register.php';</script>";
         }
     }
 }
