@@ -1,11 +1,26 @@
 <?php
+// Aktifkan error reporting untuk debugging
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 if (isset($_POST['register'])) {
-    $nama = $_POST['nama'];
-    $username = $_POST['username'];
-    $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+    $nama = trim($_POST['nama']);
+    $username = trim($_POST['username']);
+    $password = $_POST['password'];
     $role = $_POST['role'];
-    $kelas = "";
-    $jurusan = "";
+    error_log(print_r($_POST, true));
+
+    // Validasi field tidak boleh kosong
+    if (empty($nama) || empty($username) || empty($password) || empty($role)) {
+        echo "<script>alert('Semua field harus diisi!'); window.location.href='register.php';</script>";
+        exit();
+    }
+
+    // Validasi panjang password minimal
+    if (strlen($password) < 6) {
+        echo "<script>alert('Password minimal 6 karakter!'); window.location.href='register.php';</script>";
+        exit();
+    }
 
     // Koneksi ke database
     $conn = new mysqli("localhost", "root", "", "magang_edusoft");
@@ -14,31 +29,61 @@ if (isset($_POST['register'])) {
         die("Koneksi gagal: " . $conn->connect_error);
     }
 
-    // Validasi field tidak boleh kosong
-    if (empty($nama) || empty($username) || empty($_POST['password']) || empty($role)) {
-        echo "<script>alert('Semua field harus diisi!'); window.location.href='register.php';</script>";
-        exit();
-    }
+    // Set charset untuk menghindari masalah encoding
+    $conn->set_charset("utf8");
 
-    // Cek apakah username sudah ada
-    $check = $conn->prepare("SELECT username FROM users WHERE username=?");
-    $check->bind_param("s", $username);
-    $check->execute();
-    $result = $check->get_result();
+    try {
+        // Cek apakah username sudah ada
+        $check = $conn->prepare("SELECT username FROM users WHERE username=?");
+        if (!$check) {
+            throw new Exception("Prepare failed: " . $conn->error);
+        }
+        
+        $check->bind_param("s", $username);
+        $check->execute();
+        $result = $check->get_result();
 
-    if ($result->num_rows > 0) {
-        echo "<script>alert('Username sudah terdaftar!'); window.location.href='register.php';</script>";
-    } else {
-        // Simpan ke database, kelas dan jurusan diisi NULL
-        $stmt = $conn->prepare("INSERT INTO users (nama, username, password, role, kelas, jurusan) VALUES (?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param("ssssss", $nama, $username, $password, $role, $kelas, $jurusan);
+        if ($result->num_rows > 0) {
+            echo "<script>alert('Username sudah terdaftar!'); window.location.href='register.php';</script>";
+            exit();
+        }
+
+        // Hash password
+        $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+
+        // Insert data ke database
+// Pastikan query INSERT sesuai dengan struktur tabel
+$stmt = $conn->prepare("INSERT INTO users (nama, username, password, role, created_at) VALUES (?, ?, ?, ?, NOW())");
+        if (!$stmt) {
+            throw new Exception("Prepare failed: " . $conn->error);
+        }
+
+        $stmt->bind_param("ssss", $nama, $username, $hashed_password, $role);
 
         if ($stmt->execute()) {
+            // Berhasil registrasi
+            session_start();
+            $_SESSION['register_success'] = "Registrasi berhasil! Silakan login.";
+            
+            // Debug: Cek apakah data benar-benar masuk
+            $user_id = $conn->insert_id;
+            error_log("User berhasil terdaftar dengan ID: " . $user_id);
+            
             header("Location: login.php");
             exit();
         } else {
-            echo "<script>alert('Registrasi gagal: " . $conn->error . "'); window.location.href='register.php';</script>";
+            throw new Exception("Execute failed: " . $stmt->error);
         }
+
+    } catch (Exception $e) {
+        error_log("Error dalam registrasi: " . $e->getMessage());
+        echo "<script>alert('Registrasi gagal: " . $e->getMessage() . "'); window.location.href='register.php';</script>";
+        exit();
+    } finally {
+        // Tutup statement dan koneksi
+        if (isset($check)) $check->close();
+        if (isset($stmt)) $stmt->close();
+        $conn->close();
     }
 }
 ?>
@@ -516,10 +561,10 @@ if (isset($_POST['register'])) {
             opacity: 1;
         }
 
-        /* Hide original select */
-        .form-group.role select {
+        
+        /* .form-group.role select {
             display: none;
-        }
+        } */
 
         .form-group input,
         .form-group select {
@@ -556,59 +601,36 @@ if (isset($_POST['register'])) {
             <button class="notification-close" onclick="this.parentElement.style.display='none'">&times;</button>
         </div> -->
         
-        <form method="POST" action="register.php">
-            <div class="form-group name">
-                <input name="nama" placeholder="Nama Lengkap" required>
-            </div>
-            
-            <div class="form-group username">
-                <input name="username" placeholder="Username" required>
-            </div>
-            
-            <div class="form-group password">
-                <input name="password" type="password" placeholder="Password" required id="password">
-                <span class="password-toggle" onclick="togglePassword()">
-                    <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
-                </span>
-            </div>
-            
-            <div class="form-group role">
-                <select name="role" required id="roleSelect">
-                    <option value="">Pilih Role</option>
-                    <option value="siswa">Siswa</option>
-                    <option value="pembimbing">Pembimbing</option>
-                </select>
-                
-                <div class="custom-dropdown">
-                    <div class="dropdown-selected" onclick="toggleDropdown()">
-                        <span id="selectedRole">Pilih Role</span>
-                        <svg class="dropdown-arrow" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                        </svg>
-                    </div>
-                    
-                    <div class="dropdown-options" id="dropdownOptions">
-                        <div class="dropdown-option" onclick="selectRole('siswa')">
-                            <svg class="dropdown-option-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                            </svg>
-                            <span>Siswa</span>
-                        </div>
-                        <div class="dropdown-option" onclick="selectRole('pembimbing')">
-                            <svg class="dropdown-option-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                            </svg>
-                            <span>Pembimbing</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <button name="register" type="submit">Register</button>
-        </form>
+<form method="POST" action="register.php">
+    <div class="form-group name">
+        <input name="nama" placeholder="Nama Lengkap" required>
+    </div>
+    
+    <div class="form-group username">
+        <input name="username" placeholder="Username" required>
+    </div>
+    
+    <div class="form-group password">
+        <input name="password" type="password" placeholder="Password" required id="password">
+        <span class="password-toggle" onclick="togglePassword()">
+            <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+        </span>
+    </div>
+    
+    <div class="form-group role">
+        <!-- Gunakan select biasa, bukan custom dropdown untuk memastikan data terkirim -->
+        <select name="role" required id="roleSelect">
+            <option value="">Pilih Role</option>
+            <option value="siswa">Siswa</option>
+            <option value="pembimbing">Pembimbing</option>
+        </select>
+    </div>
+    
+    <button name="register" type="submit">Register</button>
+</form>
         
         <p>Sudah punya akun? <a href="login.php">Login di sini</a></p>
     </div>
@@ -649,6 +671,9 @@ if (isset($_POST['register'])) {
                 document.querySelector('.dropdown-selected').classList.remove('active');
             }
         });
+
+        
+}
 
         // Password toggle functionality
         function togglePassword() {

@@ -2,7 +2,6 @@
 session_start();
 
 // Cek apakah file koneksi ada, jika tidak buat koneksi sederhana
-if (!file_exists('config/koneksi.php')) {
     // Buat koneksi manual jika file tidak ada
     $servername = "localhost";
     $db_username = "root";
@@ -14,9 +13,7 @@ if (!file_exists('config/koneksi.php')) {
     if ($conn->connect_error) {
         die("Koneksi database gagal: " . $conn->connect_error);
     }
-} else {
-    include 'config/koneksi.php';
-}
+
 
 // Inisialisasi variabel pesan
 $error = '';
