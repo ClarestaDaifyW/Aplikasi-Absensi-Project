@@ -13,7 +13,7 @@ if (isset($_POST['setujui'])) {
   $aktivitas_id = $_POST['aktivitas_id'];
 
   // Update status jadi disetujui
-  $update = mysqli_query($koneksi, "UPDATE aktivitas SET status_validasi='disetujui' WHERE id='$aktivitas_id'");
+  $update = mysqli_query($conn, "UPDATE aktivitas SET status_validasi='disetujui' WHERE id='$aktivitas_id'");
 
   header("Location: ../pembimbing/dashboard.php");
 }

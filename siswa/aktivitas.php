@@ -7,7 +7,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $tanggal = date("Y-m-d");
   $deskripsi = $_POST['deskripsi'];
 
-  mysqli_query($koneksi, "INSERT INTO aktivitas (user_id, tanggal, deskripsi, status_validasi)
+  mysqli_query($conn, "INSERT INTO aktivitas (user_id, tanggal, deskripsi, status_validasi)
       VALUES ('$user_id', '$tanggal', '$deskripsi', 'pending')");
 
   header("Location: dashboard.php");

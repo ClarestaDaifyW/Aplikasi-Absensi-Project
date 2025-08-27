@@ -310,28 +310,28 @@ $query_siswa = mysqli_query($conn, "SELECT * FROM users WHERE role='siswa' ORDER
                 <h2>👨‍🏫 Portal Pembimbing</h2>
                 <p>Selamat datang, Pembimbing!</p>
             </div>
-            <div class="sidebar-menu">
-                <a href="#" class="menu-item active" onclick="showSection('dashboard', event)">
-                    <span class="icon">🏠</span>
-                    Dashboard
-                </a>
-                <a href="#" class="menu-item" onclick="showSection('validasi', event)">
-                    <span class="icon">✅</span>
-                    Validasi Aktivitas
-                </a>
-                <a href="#" class="menu-item" onclick="showSection('rekap', event)">
-                    <span class="icon">📊</span>
-                    Rekap Presensi
-                </a>
-                <a href="#" class="menu-item" onclick="showSection('siswa', event)">
-                    <span class="icon">👥</span>
-                    Data Siswa
-                </a>
-            </div>
+           <div class="sidebar-menu">
+    <a href="#" class="menu-item active" data-section="dashboard" onclick="showSection('dashboard', event)">
+        <span class="icon">🏠</span>
+        Dashboard
+    </a>
+    <a href="#" class="menu-item" data-section="validasi" onclick="showSection('validasi', event)">
+        <span class="icon">✅</span>
+        Validasi Aktivitas
+    </a>
+    <a href="#" class="menu-item" data-section="rekap" onclick="showSection('rekap', event)">
+        <span class="icon">📊</span>
+        Rekap Presensi
+    </a>
+    <a href="#" class="menu-item" data-section="siswa" onclick="showSection('siswa', event)">
+        <span class="icon">👥</span>
+        Data Siswa
+    </a>
+</div>
             <div class="logout-item">
                 <a href="#" class="menu-item" onclick="logout()">
                     <span class="icon">🚪</span>
-                    Logout
+                    Keluar
                 </a>
             </div>
         </div>
@@ -344,65 +344,63 @@ $query_siswa = mysqli_query($conn, "SELECT * FROM users WHERE role='siswa' ORDER
                     <p>Ringkasan kegiatan siswa - <span id="currentDate"></span></p>
                 </div>
 
-                <!-- Stats Grid: Pindahkan ke atas -->
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="icon">👨‍🎓</div>
-                        <div class="number">
-                            <?php
-                            // Total siswa
-                            $q_total_siswa = mysqli_query($conn, "SELECT COUNT(*) as total FROM users WHERE role='siswa'");
-                            $total_siswa = mysqli_fetch_assoc($q_total_siswa)['total'] ?? 0;
-                            echo $total_siswa;
-                            ?>
-                        </div>
-                        <div class="label">Total Siswa</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="icon">⏳</div>
-                        <div class="number">
-                            <?php
-                            // Menunggu validasi
-                            $q_pending = mysqli_query($conn, "SELECT COUNT(*) as total FROM aktivitas WHERE status_validasi='pending'");
-                            $pending = mysqli_fetch_assoc($q_pending)['total'] ?? 0;
-                            echo $pending;
-                            ?>
-                        </div>
-                        <div class="label">Menunggu Validasi</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="icon">✅</div>
-                        <div class="number">
-                            <?php
-                            // Sudah divalidasi khusus siswa
-                            $q_valid = mysqli_query($conn, "
-                                SELECT COUNT(*) as total 
-                                FROM aktivitas 
-                                JOIN users ON aktivitas.user_id = users.id
-                                WHERE aktivitas.status_validasi='disetujui' AND users.role='siswa'
-                            ");
-                            $valid = mysqli_fetch_assoc($q_valid)['total'] ?? 0;
-                            echo $valid;
-                            ?>
-                        </div>
-                        <div class="label">Sudah Divalidasi</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="icon">📈</div>
-                        <div class="number">
-                            <?php
-                            // Tingkat kehadiran hari ini
-                            $today = date('Y-m-d');
-                            $q_hadir = mysqli_query($conn, "SELECT COUNT(DISTINCT user_id) as hadir FROM presensi WHERE tanggal='$today'");
-                            $hadir = mysqli_fetch_assoc($q_hadir)['hadir'] ?? 0;
-                            $persen = $total_siswa > 0 ? round(($hadir / $total_siswa) * 100) : 0;
-                            echo $persen . '%';
-                            ?>
-                        </div>
-                        <div class="label">Tingkat Kehadiran</div>
-                    </div>
-                </div>
-                <!-- END Stats Grid -->
+<div class="stats-grid">
+    <div class="stat-card" style="cursor:pointer;" onclick="showSection('siswa')">
+        <div class="icon">👨‍🎓</div>
+        <div class="number">
+            <?php
+            // Total siswa
+            $q_total_siswa = mysqli_query($conn, "SELECT COUNT(*) as total FROM users WHERE role='siswa'");
+            $total_siswa = mysqli_fetch_assoc($q_total_siswa)['total'] ?? 0;
+            echo $total_siswa;
+            ?>
+        </div>
+        <div class="label">Total Siswa</div>
+    </div>
+    <div class="stat-card" style="cursor:pointer;" onclick="showSection('validasi')">
+        <div class="icon">⏳</div>
+        <div class="number">
+            <?php
+            // Menunggu validasi
+            $q_pending = mysqli_query($conn, "SELECT COUNT(*) as total FROM aktivitas WHERE status_validasi='pending'");
+            $pending = mysqli_fetch_assoc($q_pending)['total'] ?? 0;
+            echo $pending;
+            ?>
+        </div>
+        <div class="label">Menunggu Validasi</div>
+    </div>
+    <div class="stat-card" style="cursor:pointer;" onclick="showSection('validasi')">
+        <div class="icon">✅</div>
+        <div class="number">
+            <?php
+            // Sudah divalidasi khusus siswa
+            $q_valid = mysqli_query($conn, "
+                SELECT COUNT(*) as total 
+                FROM aktivitas 
+                JOIN users ON aktivitas.user_id = users.id
+                WHERE aktivitas.status_validasi='disetujui' AND users.role='siswa'
+            ");
+            $valid = mysqli_fetch_assoc($q_valid)['total'] ?? 0;
+            echo $valid;
+            ?>
+        </div>
+        <div class="label">Sudah Divalidasi</div>
+    </div>
+    <div class="stat-card" style="cursor:pointer;" onclick="showSection('rekap')">
+    <div class="icon">📈</div>
+    <div class="number">
+        <?php
+        // Tingkat kehadiran hari ini
+        $today = date('Y-m-d');
+        $q_hadir = mysqli_query($conn, "SELECT COUNT(DISTINCT user_id) as hadir FROM presensi WHERE tanggal='$today'");
+        $hadir = mysqli_fetch_assoc($q_hadir)['hadir'] ?? 0;
+        $persen = $total_siswa > 0 ? round(($hadir / $total_siswa) * 100) : 0;
+        echo $persen . '%';
+        ?>
+    </div>
+    <div class="label">Tingkat Kehadiran</div>
+</div>
+</div>
 
                 <div class="card">
                     <h3><span class="icon">🔔</span>Aktivitas Terbaru</h3>
@@ -538,16 +536,16 @@ $query_siswa = mysqli_query($conn, "SELECT * FROM users WHERE role='siswa' ORDER
                             <tbody>
                                 <?php
                                 // Ambil data presensi detail per siswa
-$q_rekap = mysqli_query($conn, "
-    SELECT users.nama, presensi.tanggal, presensi.jam_masuk, presensi.jam_keluar
-    FROM users
-    JOIN presensi ON users.id = presensi.user_id
-    WHERE users.role = 'siswa'
-      AND presensi.jam_masuk IS NOT NULL
-      AND presensi.jam_keluar IS NOT NULL
-    ORDER BY presensi.tanggal DESC, users.nama ASC
-    LIMIT 50
-");
+                                    $q_rekap = mysqli_query($conn, "
+                                        SELECT users.nama, presensi.tanggal, presensi.jam_masuk, presensi.jam_keluar
+                                        FROM users
+                                        JOIN presensi ON users.id = presensi.user_id
+                                        WHERE users.role = 'siswa'
+                                        AND presensi.jam_masuk IS NOT NULL
+                                        AND presensi.jam_keluar IS NOT NULL
+                                        ORDER BY presensi.tanggal DESC, users.nama ASC
+                                        LIMIT 50
+                                    ");
                                 while ($row = mysqli_fetch_assoc($q_rekap)) :
                                     $total_jam = '-';
                                     if ($row['jam_masuk'] && $row['jam_keluar']) {
@@ -618,6 +616,17 @@ $q_rekap = mysqli_query($conn, "
         </div>
     </div>
 </div>
+
+<!-- Modal Logout -->
+<div id="logoutModal" style="display:none; position:fixed; z-index:2000; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.35); align-items:center; justify-content:center;">
+  <div style="background:#fff; border-radius:16px; max-width:340px; margin:auto; padding:32px 24px 20px 24px; box-shadow:0 8px 32px rgba(79,140,255,0.18); text-align:center; position:relative;">
+    <div style="font-size:1.15rem; font-weight:600; color:#2d3a4b; margin-bottom:10px;">Konfirmasi Keluar</div>
+    <div style="color:#64748b; font-size:1rem; margin-bottom:24px;">Apakah Anda yakin ingin keluar dari akun?</div>
+    <button onclick="confirmLogout()" style="background:#ef4444; color:#fff; border:none; border-radius:6px; padding:8px 22px; font-size:1rem; font-weight:500; margin-right:10px; cursor:pointer; transition:background 0.2s;">Keluar</button>
+    <button onclick="closeLogoutModal()" style="background:#f3f4f6; color:#2d3a4b; border:none; border-radius:6px; padding:8px 22px; font-size:1rem; font-weight:500; cursor:pointer; transition:background 0.2s;">Batal</button>
+  </div>
+</div>
+<!-- END Modal Logout -->
         </div>
     </div>
     <script>
@@ -671,6 +680,39 @@ $q_rekap = mysqli_query($conn, "
             document.getElementById('currentDate').textContent = now.toLocaleDateString('id-ID', options);
         }
         updateCurrentDate();
+
+        function logout() {
+    document.getElementById('logoutModal').style.display = 'flex';
+}
+function closeLogoutModal() {
+    document.getElementById('logoutModal').style.display = 'none';
+}
+function confirmLogout() {
+    window.location.href = '../auth/logout.php';
+}
+
+function showSection(sectionId, event) {
+    // Hide all sections
+    const sections = document.querySelectorAll('.content-section');
+    sections.forEach(section => {
+        section.classList.remove('active');
+    });
+    // Show selected section
+    document.getElementById(sectionId).classList.add('active');
+    // Update active menu item
+    const menuItems = document.querySelectorAll('.menu-item');
+    menuItems.forEach(item => item.classList.remove('active'));
+    // Aktifkan menu sidebar yang sesuai section
+    const activeMenu = document.querySelector('.menu-item[data-section="' + sectionId + '"]');
+    if (activeMenu) activeMenu.classList.add('active');
+    // Jika dipanggil dari klik menu, tetap aktifkan juga event.target
+    if(event && event.target.classList.contains('menu-item')) event.target.classList.add('active');
+    // Close sidebar on mobile
+    if (window.innerWidth <= 768) {
+        toggleSidebar();
+    }
+}
     </script>
+
 </body>
 </html>

@@ -6,13 +6,13 @@ $user_id = $_SESSION['user_id'];
 $tanggal = date("Y-m-d");
 
 // Ambil data presensi hari ini
-$q = mysqli_query($koneksi, "SELECT * FROM presensi WHERE user_id='$user_id' AND tanggal='$tanggal'");
+$q = mysqli_query($conn, "SELECT * FROM presensi WHERE user_id='$user_id' AND tanggal='$tanggal'");
 $presensi = mysqli_fetch_assoc($q);
 
 // Proses jam masuk
 if (isset($_POST['masuk'])) {
     $jam_masuk = $_POST['jam_masuk'];
-    mysqli_query($koneksi, "INSERT INTO presensi (user_id, tanggal, jam_masuk) VALUES ('$user_id', '$tanggal', '$jam_masuk')");
+    mysqli_query($conn, "INSERT INTO presensi (user_id, tanggal, jam_masuk) VALUES ('$user_id', '$tanggal', '$jam_masuk')");
     header("Location: presensi.php");
     exit;
 }
@@ -20,7 +20,7 @@ if (isset($_POST['masuk'])) {
 // Proses jam keluar
 if (isset($_POST['keluar'])) {
     $jam_keluar = $_POST['jam_keluar'];
-    mysqli_query($koneksi, "UPDATE presensi SET jam_keluar='$jam_keluar' WHERE user_id='$user_id' AND tanggal='$tanggal'");
+    mysqli_query($conn, "UPDATE presensi SET jam_keluar='$jam_keluar' WHERE user_id='$user_id' AND tanggal='$tanggal'");
     header("Location: presensi.php");
     exit;
 }

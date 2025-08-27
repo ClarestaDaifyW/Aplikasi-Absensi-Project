@@ -366,7 +366,7 @@ if (
             <div class="logout-item">
                 <a href="#" class="menu-item" onclick="logout()">
                     <span class="icon">🚪</span>
-                    Logout
+                    Keluar
                 </a>
             </div>
         </div>
@@ -491,9 +491,9 @@ if (
                             while ($row = mysqli_fetch_assoc($q_riwayat)) :
                             ?>
                             <tr style="border-bottom: 1px solid #f1f5f9;">
-                                <td style="padding: 12px;"><?= htmlspecialchars($row['tanggal']) ?></td>
-                                <td style="padding: 12px;"><?= htmlspecialchars($row['jam_masuk']) ?></td>
-                                <td style="padding: 12px;"><?= htmlspecialchars($row['jam_keluar']) ?></td>
+                                <td style="padding: 12px;"><?= htmlspecialchars($row['tanggal'] ?? '-') ?></td>
+<td style="padding: 12px;"><?= htmlspecialchars($row['jam_masuk'] ?? '-') ?></td>
+<td style="padding: 12px;"><?= htmlspecialchars($row['jam_keluar'] ?? '-') ?></td>
                                 <td style="padding: 12px;">
                                     <?php if ($row['jam_masuk']): ?>
                                         <span class="status-badge status-valid">Hadir</span>
@@ -585,6 +585,14 @@ if (
                 </div>
             </div>
         </div>
+        <div id="logoutModal" style="display:none; position:fixed; z-index:2000; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.35); align-items:center; justify-content:center;">
+  <div style="background:#fff; border-radius:16px; max-width:340px; margin:auto; padding:32px 24px 20px 24px; box-shadow:0 8px 32px rgba(79,140,255,0.18); text-align:center; position:relative;">
+    <div style="font-size:1.15rem; font-weight:600; color:#2d3a4b; margin-bottom:10px;">Konfirmasi Keluar</div>
+    <div style="color:#64748b; font-size:1rem; margin-bottom:24px;">Apakah Anda yakin ingin keluar dari akun?</div>
+    <button onclick="confirmLogout()" style="background:#ef4444; color:#fff; border:none; border-radius:6px; padding:8px 22px; font-size:1rem; font-weight:500; margin-right:10px; cursor:pointer; transition:background 0.2s;">Keluar</button>
+    <button onclick="closeLogoutModal()" style="background:#f3f4f6; color:#2d3a4b; border:none; border-radius:6px; padding:8px 22px; font-size:1rem; font-weight:500; cursor:pointer; transition:background 0.2s;">Batal</button>
+  </div>
+</div>
     </div>
     
     <?php if ($notif_incomplete_profile): ?>
@@ -661,6 +669,16 @@ if (
                 }, 5000);
             });
         });
+
+        function logout() {
+    document.getElementById('logoutModal').style.display = 'flex';
+}
+function closeLogoutModal() {
+    document.getElementById('logoutModal').style.display = 'none';
+}
+function confirmLogout() {
+    window.location.href = '../auth/logout.php';
+}
     </script>
 </body>
 </html>
