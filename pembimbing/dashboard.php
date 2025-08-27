@@ -538,14 +538,16 @@ $query_siswa = mysqli_query($conn, "SELECT * FROM users WHERE role='siswa' ORDER
                             <tbody>
                                 <?php
                                 // Ambil data presensi detail per siswa
-                                $q_rekap = mysqli_query($conn, "
-                                    SELECT users.nama, presensi.tanggal, presensi.jam_masuk, presensi.jam_keluar
-                                    FROM users
-                                    LEFT JOIN presensi ON users.id = presensi.user_id
-                                    WHERE users.role = 'siswa'
-                                    ORDER BY presensi.tanggal DESC, users.nama ASC
-                                    LIMIT 50
-                                ");
+$q_rekap = mysqli_query($conn, "
+    SELECT users.nama, presensi.tanggal, presensi.jam_masuk, presensi.jam_keluar
+    FROM users
+    JOIN presensi ON users.id = presensi.user_id
+    WHERE users.role = 'siswa'
+      AND presensi.jam_masuk IS NOT NULL
+      AND presensi.jam_keluar IS NOT NULL
+    ORDER BY presensi.tanggal DESC, users.nama ASC
+    LIMIT 50
+");
                                 while ($row = mysqli_fetch_assoc($q_rekap)) :
                                     $total_jam = '-';
                                     if ($row['jam_masuk'] && $row['jam_keluar']) {
@@ -559,7 +561,7 @@ $query_siswa = mysqli_query($conn, "SELECT * FROM users WHERE role='siswa' ORDER
                                 ?>
                                 <tr>
                                     <td><?= htmlspecialchars($row['nama']) ?></td>
-                                    <td><?= htmlspecialchars($row['tanggal']) ?></td>
+                                    <td><?= htmlspecialchars($row['tanggal'] ?? '-')?></td>
                                     <td><?= htmlspecialchars($row['jam_masuk'] ?? '-') ?></td>
                                     <td>
                                         <?php if ($row['jam_keluar']) : ?>
@@ -583,37 +585,39 @@ $query_siswa = mysqli_query($conn, "SELECT * FROM users WHERE role='siswa' ORDER
                 </div>
             </div>
             <!-- Data Siswa Section -->
-            <div id="siswa" class="content-section">
-                <div class="content-header">
-                    <h1>Data Siswa</h1>
-                    <p>Daftar siswa yang sudah terdaftar di sistem</p>
-                </div>
-                <div class="card">
-                    <h3><span class="icon">👥</span>Daftar Siswa</h3>
-                    <div class="table-container">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Nama</th>
-                                    <th>Username</th>
-                                    <th>Jurusan</th>
-                                    <th>Kelas</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php while ($siswa = mysqli_fetch_assoc($query_siswa)) : ?>
-                                <tr>
-                                    <td><?= htmlspecialchars($siswa['nama']) ?></td>
-                                    <td><?= htmlspecialchars($siswa['username']) ?></td>
-                                    <td><?= htmlspecialchars($siswa['jurusan'] ?? '-') ?></td>
-                                    <td><?= htmlspecialchars($siswa['kelas'] ?? '-') ?></td>
-                                </tr>
-                                <?php endwhile; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+           <!-- Data Siswa Section -->
+<div id="siswa" class="content-section">
+    <div class="content-header">
+        <h1>Data Siswa</h1>
+        <p>Daftar siswa yang sudah terdaftar di sistem</p>
+    </div>
+    <div class="card">
+        <h3><span class="icon">👥</span>Daftar Siswa</h3>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nama</th>
+                        <th>Username</th>
+                        <th>Jurusan</th>
+                        <th>Kelas</th>
+                    </tr>
+                </thead>
+                <tbody>
+            
+                    <?php while ($siswa = mysqli_fetch_assoc($query_siswa)) : ?>
+                    <tr>
+                        <td><?= htmlspecialchars((string)($siswa['nama'] ?? '-')) ?></td>
+                        <td><?= htmlspecialchars((string)($siswa['username'] ?? '-')) ?></td>
+<td><?= htmlspecialchars($siswa['jurusan'] !== null ? $siswa['jurusan'] : '-') ?></td>
+<td><?= htmlspecialchars($siswa['kelas'] !== null ? $siswa['kelas'] : '-') ?></td>
+                    </tr>
+                    <?php endwhile; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
         </div>
     </div>
     <script>
