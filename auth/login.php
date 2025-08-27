@@ -1,11 +1,36 @@
 <?php
 session_start();
-include '../config/koneksi.php';
 
-$pesan = '';
-if (isset($_POST['login'])) {
-  $username = $_POST['username'];
-  $password = $_POST['password'];
+// Cek apakah file koneksi ada, jika tidak buat koneksi sederhana
+if (!file_exists('config/koneksi.php')) {
+    // Buat koneksi manual jika file tidak ada
+    $servername = "localhost";
+    $db_username = "root";
+    $db_password = "";
+    $dbname = "magang_edusoft";
+    
+    $conn = new mysqli($servername, $db_username, $db_password, $dbname);
+    
+    if ($conn->connect_error) {
+        die("Koneksi database gagal: " . $conn->connect_error);
+    }
+} else {
+    include 'config/koneksi.php';
+}
+
+// Inisialisasi variabel pesan
+$error = '';
+$success = '';
+
+// Tampilkan pesan sukses registrasi jika ada
+if (isset($_SESSION['register_success'])) {
+    $success = $_SESSION['register_success'];
+    unset($_SESSION['register_success']);
+}
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $username = $_POST['username'];
+    $password = $_POST['password'];
 
   $query = mysqli_query($koneksi, "SELECT * FROM users WHERE username='$username'");
   $data = mysqli_fetch_assoc($query);
