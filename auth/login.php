@@ -1,11 +1,33 @@
 <?php
 session_start();
-include '../config/koneksi.php';
 
-$pesan = '';
-if (isset($_POST['login'])) {
-  $username = $_POST['username'];
-  $password = $_POST['password'];
+// Cek apakah file koneksi ada, jika tidak buat koneksi sederhana
+    // Buat koneksi manual jika file tidak ada
+    $servername = "localhost";
+    $db_username = "root";
+    $db_password = "";
+    $dbname = "magang_edusoft";
+    
+    $conn = new mysqli($servername, $db_username, $db_password, $dbname);
+    
+    if ($conn->connect_error) {
+        die("Koneksi database gagal: " . $conn->connect_error);
+    }
+
+
+// Inisialisasi variabel pesan
+$error = '';
+$success = '';
+
+// Tampilkan pesan sukses registrasi jika ada
+if (isset($_SESSION['register_success'])) {
+    $success = $_SESSION['register_success'];
+    unset($_SESSION['register_success']);
+}
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $username = $_POST['username'];
+    $password = $_POST['password'];
 
     // Validasi input
     if (empty($username) || empty($password)) {
@@ -92,17 +114,18 @@ if (isset($_POST['login'])) {
       font-size: 28px;
       font-weight: 600;
     }
-
-    .pesan-error {
-      background: #fee;
-      color: #c33;
-      padding: 12px;
-      border-radius: 8px;
-      margin-bottom: 20px;
-      border: 1px solid #fcc;
-      font-size: 14px;
-      text-align: center;
-    }
+    
+.pesan-error {
+  background: #fee;
+  color: #c33;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  border: 1px solid #fcc;
+  font-size: 14px;
+  text-align: center;
+  font-weight: 500;
+}
 
     .pesan-sukses {
       background: #efe;
@@ -271,8 +294,11 @@ if (isset($_POST['login'])) {
   <?php if (!empty($error)): ?>
     <div class="pesan-error"><?= $error ?></div>
   <?php endif; ?>
-  <?php if (!empty($success)): ?>
-    <div class="pesan-sukses"><?= $success ?></div>
+ <?php if (isset($_SESSION['register_success'])): ?>
+    <div class="pesan-sukses" style="margin-bottom:12px; font-size:14px; padding:8px 10px;">
+      <span style="font-weight:500;">Akun telah berhasil dibuat!</span> Silakan masuk.
+    </div>
+    <?php unset($_SESSION['register_success']); ?>
   <?php endif; ?>
   <form method="POST">
     <input name="username" placeholder="Username" required>
@@ -310,3 +336,4 @@ function togglePw() {
 </script>
 </body>
 </html>
+
