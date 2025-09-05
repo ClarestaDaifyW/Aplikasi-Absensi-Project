@@ -329,6 +329,39 @@ if (
             from { opacity: 1; }
             to { opacity: 0; }
         }
+        /* Light Mode (default) */
+body {
+  background: #ffffff;
+  color: #000000;
+  font-family: Arial, sans-serif;
+  transition: all 0.3s ease;
+}
+
+/* Dark Mode */
+body.dark-mode {
+  background: #121212;
+  color: #ffffff;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  background: #f4f4f4;
+}
+
+body.dark-mode header {
+  background: #1e1e1e;
+}
+
+button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
     </style>
 </head>
 <body>
@@ -374,11 +407,15 @@ if (
         <!-- Main Content -->
         <div class="main-content">
             <!-- Dashboard Section -->
-            <div id="dashboard" class="content-section active">
-                <div class="content-header">
-                    <h1>Dashboard</h1>
-                    <p>Ringkasan aktivitas hari ini - <span id="currentDate"></span></p>
-                </div>
+            <div class="content-header" style="display: flex; align-items: center; justify-content: space-between;">
+    <div>
+        <h1 style="margin-bottom: 8px;">Dashboard</h1>
+        <p>Ringkasan aktivitas hari ini - <span id="currentDate"></span></p>
+    </div>
+    <button id="darkModeToggle" style="margin-left: 24px; padding: 10px 20px; border-radius: 8px; border: none;">
+        🌙 Dark Mode
+    </button>
+</div>
                 <div class="card">
                     <h3><span class="icon">📅</span>Presensi Hari Ini</h3>
                     <div class="info-item">
@@ -679,6 +716,34 @@ function closeLogoutModal() {
 function confirmLogout() {
     window.location.href = '../auth/logout.php';
 }
+
+const toggle = document.getElementById("darkModeToggle");
+
+// Cek preferensi sebelumnya
+if (localStorage.getItem("darkMode") === "enabled") {
+  document.body.classList.add("dark-mode");
+  toggle.textContent = "☀️ Light Mode";
+}
+
+// Event klik tombol
+toggle.addEventListener("click", () => {
+  document.body.classList.toggle("dark-mode");
+
+  if (document.body.classList.contains("dark-mode")) {
+    localStorage.setItem("darkMode", "enabled");
+    toggle.textContent = "☀️ Light Mode";
+  } else {
+    localStorage.setItem("darkMode", "disabled");
+    toggle.textContent = "🌙 Dark Mode";
+  }
+});
+
+const hour = new Date().getHours();
+if (hour >= 18 || hour < 6) {
+  document.body.classList.add("dark-mode");
+}
+
+
     </script>
 </body>
 </html>
