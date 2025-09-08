@@ -313,7 +313,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </div>
     <button name="login">Login</button>
   </form>
-  <p>Belum punya akun? <a href="register.php">Daftar di sini</a></p>
+  <!-- <p>Belum punya akun? <a href="register.php">Daftar di sini</a></p> -->
 </div>
 
 <script>

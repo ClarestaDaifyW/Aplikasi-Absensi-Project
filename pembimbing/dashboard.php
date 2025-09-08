@@ -165,8 +165,8 @@ $query_siswa = mysqli_query($conn, "SELECT * FROM users WHERE role='siswa' ORDER
             display: inline-block;
         }
         .status-pending { background: #fef3c7; color: #d97706; }
-        .status-approved { background: #dcfce7; color: #166534; }
-        .status-rejected { background: #fee2e2; color: #dc2626; }
+        .status-approved { background: #dcfce7; color: #23b923ff; }
+        .status-rejected { background: #fcf3f3ff; color: #d11a1aff; }
         .btn {
             padding: 8px 16px;
             border: none;
@@ -298,6 +298,20 @@ $query_siswa = mysqli_query($conn, "SELECT * FROM users WHERE role='siswa' ORDER
             margin-top: 2px;
             display: block;
         }
+
+        input[type="text"], input[type="password"] {
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+input[type="text"]:focus, input[type="password"]:focus {
+    border-color: #4f8cff;
+    box-shadow: 0 0 0 3px rgba(79, 140, 255, 0.2);
+    outline: none;
+}
+
+button[type="submit"]:hover {
+    background: #3b82f6 !important;
+}
     </style>
 </head>
 <body>
@@ -312,25 +326,24 @@ $query_siswa = mysqli_query($conn, "SELECT * FROM users WHERE role='siswa' ORDER
             </div>
            <div class="sidebar-menu">
     <a href="#" class="menu-item active" data-section="dashboard" onclick="showSection('dashboard', event)">
-        <span class="icon">🏠</span>
         Dashboard
     </a>
     <a href="#" class="menu-item" data-section="validasi" onclick="showSection('validasi', event)">
-        <span class="icon">✅</span>
-        Validasi Aktivitas
+        Aktivitas
     </a>
     <a href="#" class="menu-item" data-section="rekap" onclick="showSection('rekap', event)">
-        <span class="icon">📊</span>
         Rekap Presensi
     </a>
     <a href="#" class="menu-item" data-section="siswa" onclick="showSection('siswa', event)">
-        <span class="icon">👥</span>
         Data Siswa
+    </a>
+    <a href="#" class="menu-item" data-section="akun-siswa" onclick="showSection('akun-siswa', event)">
+        Akun Siswa
     </a>
 </div>
             <div class="logout-item">
                 <a href="#" class="menu-item" onclick="logout()">
-                    <span class="icon">🚪</span>
+                    <span class="icon">➜]</span>
                     Keluar
                 </a>
             </div>
@@ -452,45 +465,54 @@ $query_siswa = mysqli_query($conn, "SELECT * FROM users WHERE role='siswa' ORDER
                         <h3>Daftar Aktivitas Siswa</h3>
                         <input type="text" class="search-box" placeholder="Cari nama siswa..." onkeyup="searchTable()">
                     </div>
-                    <table id="activitiesTable">
-                        <thead>
-                            <tr>
-                                <th>Nama Siswa</th>
-                                <th>Tanggal</th>
-                                <th>Aktivitas</th>
-                                <th>Status</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php while ($data = mysqli_fetch_assoc($query)) : ?>
-                            <tr data-status="<?= $data['status_validasi'] ?>">
-                                <td><?= htmlspecialchars($data['nama']) ?></td>
-                                <td><?= htmlspecialchars($data['tanggal']) ?></td>
-                                <td><?= nl2br(htmlspecialchars($data['deskripsi'])) ?></td>
-                                <td>
-                                    <?php if ($data['status_validasi'] == 'pending') : ?>
-                                        <span class="status-badge status-pending">Menunggu</span>
-                                    <?php elseif ($data['status_validasi'] == 'Valid') : ?>
-                                        <span class="status-badge status-approved">Disetujui</span>
-                                    <?php else : ?>
-                                        <span class="status-badge status-rejected"><?= htmlspecialchars($data['status_validasi']) ?></span>
-                                    <?php endif; ?>
-                                </td>
-                                <td>
-                                    <?php if ($data['status_validasi'] == 'pending') : ?>
-                                        <form method="POST" action="../proses/proses_validasi.php" style="display:inline;">
-                                            <input type="hidden" name="aktivitas_id" value="<?= $data['id']; ?>">
-                                            <button type="submit" name="setujui" class="btn btn-approve">Setujui</button>
-                                        </form>
-                                    <?php else : ?>
-                                        <span class="approved-text">✅ Sudah Disetujui</span>
-                                    <?php endif; ?>
-                                </td>
-                            </tr>
-                            <?php endwhile; ?>
-                        </tbody>
-                    </table>
+<table id="activitiesTable">
+    <thead>
+        <tr>
+            <th>Nama Siswa</th>
+            <th>Tanggal</th>
+            <th>Aktivitas</th>
+            <th>Status</th>
+            <th>Aksi</th>
+            <th>Foto</th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php while ($data = mysqli_fetch_assoc($query)) : ?>
+        <tr data-status="<?= $data['status_validasi'] ?>">
+            <td><?= htmlspecialchars($data['nama']) ?></td>
+            <td><?= htmlspecialchars($data['tanggal']) ?></td>
+            <td><?= nl2br(htmlspecialchars($data['deskripsi'])) ?></td>
+            
+            <td>
+                <?php if ($data['status_validasi'] == 'pending') : ?>
+                    <span class="status-badge status-pending">Menunggu</span>
+                <?php elseif ($data['status_validasi'] == 'disetujui') : ?>
+                    <span class="status-badge status-approved">Disetujui</span>
+                <?php else : ?>
+                    <span class="status-badge status-rejected"><?= htmlspecialchars($data['status_validasi']) ?></span>
+                <?php endif; ?>
+            </td>
+            <td>
+                <?php if ($data['status_validasi'] == 'pending') : ?>
+                    <form method="POST" action="../proses/proses_validasi.php" style="display:inline;">
+                        <input type="hidden" name="aktivitas_id" value="<?= $data['id']; ?>">
+                        <button type="submit" name="setujui" class="btn btn-approve">Setujui</button>
+                    </form>
+                <?php else : ?>
+                    <span class="approved-text">✅ Sudah Disetujui</span>
+                <?php endif; ?>
+            </td>
+            <td>
+                <?php if (!empty($data['foto'])): ?>
+                    <img src="../siswa/uploads/<?= htmlspecialchars($data['foto']) ?>" alt="Foto Aktivitas" style="max-width:80px; max-height:80px; border-radius:8px; border:1px solid #e2e8f0; background:#f8f9fa;">
+                <?php else: ?>
+                    <span style="color:#64748b;">-</span>
+                <?php endif; ?>
+            </td>
+        </tr>
+        <?php endwhile; ?>
+    </tbody>
+</table>
                 </div>
             </div>
             <!-- Rekap Section -->
@@ -607,13 +629,66 @@ $query_siswa = mysqli_query($conn, "SELECT * FROM users WHERE role='siswa' ORDER
                     <tr>
                         <td><?= htmlspecialchars((string)($siswa['nama'] ?? '-')) ?></td>
                         <td><?= htmlspecialchars((string)($siswa['username'] ?? '-')) ?></td>
-<td><?= htmlspecialchars($siswa['jurusan'] !== null ? $siswa['jurusan'] : '-') ?></td>
-<td><?= htmlspecialchars($siswa['kelas'] !== null ? $siswa['kelas'] : '-') ?></td>
+                        <td><?= htmlspecialchars($siswa['jurusan'] !== null ? $siswa['jurusan'] : '-') ?></td>
+                        <td><?= htmlspecialchars($siswa['kelas'] !== null ? $siswa['kelas'] : '-') ?></td>
                     </tr>
                     <?php endwhile; ?>
                 </tbody>
             </table>
         </div>
+    </div>
+</div>
+
+<!-- Akun Siswa Section -->
+<div id="akun-siswa" class="content-section">
+    <div class="content-header">
+        <h1>Akun Siswa</h1>
+        <p>Tambah akun siswa baru ke dalam sistem</p>
+    </div>
+    <?php if (isset($_SESSION['success'])): ?>
+<div style="background: #dcfce7; color: #166534; padding: 12px; border-radius: 6px; margin-bottom: 20px; border-left: 4px solid #22c55e;">
+    <?= $_SESSION['success']; unset($_SESSION['success']); ?>
+</div>
+<?php endif; ?>
+
+<?php if (isset($_SESSION['error'])): ?>
+<div style="background: #fee2e2; color: #dc2626; padding: 12px; border-radius: 6px; margin-bottom: 20px; border-left: 4px solid #ef4444;">
+    <?= $_SESSION['error']; unset($_SESSION['error']); ?>
+</div>
+<?php endif; ?>
+    <div class="card">
+        <h3><span class="icon">👤</span>Form Tambah Siswa</h3>
+        <form method="POST" action="../proses/tambah_siswa.php" style="max-width: 600px;">
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #2d3a4b;">Nama Lengkap</label>
+                <input type="text" name="nama" required style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 1rem;">
+            </div>
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #2d3a4b;">Username</label>
+                <input type="text" name="username" required style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 1rem;">
+            </div>
+            <div style="margin-bottom: 20px; position:relative;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #2d3a4b;">Password</label>
+                <input type="password" name="password" id="inputPasswordSiswa" required style="width: 100%; padding: 10px 38px 10px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 1rem;">
+                <span onclick="togglePasswordSiswa()" style="position:absolute;top:38px;right:12px;cursor:pointer;">
+                    <svg id="eyeIconSiswa" xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24">
+                        <path id="eyePathSiswa" stroke="#888" stroke-width="2" d="M1.5 12S5.5 5.5 12 5.5 22.5 12 22.5 12 18.5 18.5 12 18.5 1.5 12 1.5 12Z"/>
+                        <circle id="eyeCircleSiswa" cx="12" cy="12" r="3.5" stroke="#888" stroke-width="2"/>
+                    </svg>
+                </span>
+            </div>
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #2d3a4b;">Jurusan</label>
+                <input type="text" name="jurusan" style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 1rem;">
+            </div>
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #2d3a4b;">Kelas</label>
+                <input type="text" name="kelas" style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 1rem;">
+            </div>
+            <button type="submit" style="background: #4f8cff; color: white; padding: 12px 24px; border: none; border-radius: 6px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: background 0.3s;">
+                Tambah Siswa
+            </button>
+        </form>
     </div>
 </div>
 
@@ -710,6 +785,21 @@ function showSection(sectionId, event) {
     // Close sidebar on mobile
     if (window.innerWidth <= 768) {
         toggleSidebar();
+    }
+}
+
+function togglePasswordSiswa() {
+    const pw = document.getElementById('inputPasswordSiswa');
+    const eyePath = document.getElementById('eyePathSiswa');
+    const eyeCircle = document.getElementById('eyeCircleSiswa');
+    if (pw.type === "password") {
+        pw.type = "text";
+        eyePath.setAttribute("d", "M3 3l18 18M1.5 12S5.5 5.5 12 5.5c2.2 0 4.1.6 5.7 1.5M22.5 12S18.5 18.5 12 18.5c-2.2 0-4.1-.6-5.7-1.5");
+        eyeCircle.style.display = "none";
+    } else {
+        pw.type = "password";
+        eyePath.setAttribute("d", "M1.5 12S5.5 5.5 12 5.5 22.5 12 22.5 12 18.5 18.5 12 18.5 1.5 12 1.5 12Z");
+        eyeCircle.style.display = "inline";
     }
 }
     </script>

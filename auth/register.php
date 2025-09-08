@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-=======
 <?php
 session_start();
 include "../config/koneksi.php";
@@ -39,7 +37,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 ?>
 
->>>>>>> main
 <!DOCTYPE html>
 <html lang="id">
 <head>
