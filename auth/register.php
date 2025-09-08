@@ -1,96 +1,45 @@
+<<<<<<< HEAD
+=======
 <?php
 session_start();
-// Aktifkan error reporting untuk debugging
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+include "../config/koneksi.php";
+// koneksi ke database
 
-if (isset($_POST['register'])) {
-    $nama = trim($_POST['nama']);
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $username = trim($_POST['username']);
-    $password = $_POST['password'];
-    $role = $_POST['role'];
-    error_log(print_r($_POST, true));
+    $nama     = trim($_POST['nama']);
+    $password = password_hash($_POST['password'], PASSWORD_BCRYPT);
+    $role     = $_POST['role'];
+    $kelas    = $_POST['kelas'] ?? null;
+    $jurusan  = $_POST['jurusan'] ?? null;
 
-    // Validasi field tidak boleh kosong
-    if (empty($nama) || empty($username) || empty($password) || empty($role)) {
-        echo "<script>alert('Semua field harus diisi!'); window.location.href='register.php';</script>";
-        exit();
-    }
+    // Cek apakah username sudah ada
+    $check = $conn->prepare("SELECT id FROM users WHERE username = ?");
+    $check->bind_param("s", $username);
+    $check->execute();
+    $check->store_result();
 
-    // Validasi panjang password minimal
-    if (strlen($password) < 6) {
-        echo "<script>alert('Password minimal 6 karakter!'); window.location.href='register.php';</script>";
-        exit();
-    }
-
-    // Koneksi ke database
-    $conn = new mysqli("localhost", "root", "", "magang_edusoft");
-
-    if ($conn->connect_error) {
-        die("Koneksi gagal: " . $conn->connect_error);
-    }
-
-    // Set charset untuk menghindari masalah encoding
-    $conn->set_charset("utf8");
-
-    try {
-        // Cek apakah username sudah ada
-        $check = $conn->prepare("SELECT username FROM users WHERE username=?");
-        if (!$check) {
-            throw new Exception("Prepare failed: " . $conn->error);
-        }
-        
-        $check->bind_param("s", $username);
-        $check->execute();
-        $result = $check->get_result();
-
-      if ($result->num_rows > 0) {
-    $_SESSION['register_error'] = "Akun sudah terdaftar, silahkan masuk kembali!";
+  if ($check->num_rows > 0) {
+    $_SESSION['register_error'] = "Username sudah dipakai, coba yang lain.";
     header("Location: register.php");
     exit();
-}
-
-        // Hash password
-        $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-
-        // Insert data ke database
-// Pastikan query INSERT sesuai dengan struktur tabel
-$stmt = $conn->prepare("INSERT INTO users (nama, username, password, role, created_at) VALUES (?, ?, ?, ?, NOW())");
-        if (!$stmt) {
-            throw new Exception("Prepare failed: " . $conn->error);
-        }
-
-        $stmt->bind_param("ssss", $nama, $username, $hashed_password, $role);
+} else {
+        // Insert user baru
+        $stmt = $conn->prepare("INSERT INTO users (username, password, role, nama, kelas, jurusan) VALUES (?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("ssssss", $username, $password, $role, $nama, $kelas, $jurusan);
 
         if ($stmt->execute()) {
-            // Berhasil registrasi
-            session_start();
-            $_SESSION['register_success'] = "Registrasi berhasil! Silakan login.";
-            
-            // Debug: Cek apakah data benar-benar masuk
-            $user_id = $conn->insert_id;
-            error_log("User berhasil terdaftar dengan ID: " . $user_id);
-            
+            $_SESSION['register_success'] = "Akun telah berhasil dibuat, silakan masuk.";
             header("Location: login.php");
             exit();
         } else {
-            throw new Exception("Execute failed: " . $stmt->error);
+            echo "Error: " . $stmt->error;
         }
-
-    } catch (Exception $e) {
-        error_log("Error dalam registrasi: " . $e->getMessage());
-        echo "<script>alert('Registrasi gagal: " . $e->getMessage() . "'); window.location.href='register.php';</script>";
-        exit();
-    } finally {
-        // Tutup statement dan koneksi
-        if (isset($check)) $check->close();
-        if (isset($stmt)) $stmt->close();
-        $conn->close();
     }
-}
+    }
 ?>
 
-
+>>>>>>> main
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -124,7 +73,19 @@ $stmt = $conn->prepare("INSERT INTO users (nama, username, password, role, creat
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
             position: relative;
             overflow: hidden;
+            animation: slideUp 0.7s cubic-bezier(.39,.58,.57,1) both;
         }
+
+        @keyframes slideUp {
+    0% {
+        opacity: 0;
+        transform: translateY(40px) scale(0.98);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
 
         .register-container::before {
             content: '';
@@ -331,7 +292,6 @@ $stmt = $conn->prepare("INSERT INTO users (nama, username, password, role, creat
             }
         }
 
-        /* Close button for notifications */
         .notification-close {
             position: absolute;
             top: 10px;
@@ -354,7 +314,6 @@ $stmt = $conn->prepare("INSERT INTO users (nama, username, password, role, creat
             background-color: rgba(255, 255, 255, 0.2);
         }
 
-        /* Responsive Design */
         @media (max-width: 480px) {
             .register-container {
                 padding: 30px 25px;
@@ -366,7 +325,6 @@ $stmt = $conn->prepare("INSERT INTO users (nama, username, password, role, creat
             }
         }
 
-        /* Loading animation for button */
         .loading {
             position: relative;
             color: transparent;
@@ -393,7 +351,6 @@ $stmt = $conn->prepare("INSERT INTO users (nama, username, password, role, creat
             }
         }
 
-        /* Input icons */
         .form-group {
             position: relative;
         }
@@ -424,393 +381,246 @@ $stmt = $conn->prepare("INSERT INTO users (nama, username, password, role, creat
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z'/%3E%3C/svg%3E");
         }
 
-        /* Password toggle eye icon */
+        /* Styling untuk ikon mata */
         .password-toggle {
             position: absolute;
             right: 15px;
             top: 50%;
             transform: translateY(-50%);
+            width: 20px;
+            height: 20px;
+            background-size: contain;
+            background-repeat: no-repeat;
             cursor: pointer;
-            width: 22px;
-            height: 22px;
-            color: #9ca3af;
-            transition: color 0.3s ease;
-            z-index: 10;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            z-index: 2;
+            opacity: 0.5;
+            transition: opacity 0.3s ease;
         }
 
         .password-toggle:hover {
-            color: #667eea;
-        }
-
-        .password-toggle svg {
-            width: 100%;
-            height: 100%;
-            stroke: currentColor;
-        }
-
-        /* Adjust padding for password input to make room for eye icon */
-        .form-group.password input {
-            padding-right: 55px;
-        }
-
-        .form-group.role::before {
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z'/%3E%3C/svg%3E");
-        }
-
-        /* Custom Dropdown Styles */
-        .custom-dropdown {
-            position: relative;
-            width: 100%;
-        }
-
-        .dropdown-selected {
-            width: 100%;
-            padding: 15px 50px 15px 50px;
-            border: 2px solid #e1e5e9;
-            border-radius: 12px;
-            font-size: 16px;
-            background: #f8f9fa;
-            cursor: pointer;
-            color: #9ca3af;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: relative;
-        }
-
-        .dropdown-selected.active {
-            border-color: #667eea;
-            background: #fff;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-            transform: translateY(-2px);
-            color: #2d3a4b;
-        }
-
-        .dropdown-selected.has-value {
-            color: #2d3a4b;
-        }
-
-        .dropdown-arrow {
-            width: 20px;
-            height: 20px;
-            color: #9ca3af;
-            transition: transform 0.3s ease, color 0.3s ease;
-        }
-
-        .dropdown-selected.active .dropdown-arrow {
-            transform: rotate(180deg);
-            color: #667eea;
-        }
-
-        .dropdown-options {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: #fff;
-            border: 2px solid #667eea;
-            border-top: none;
-            border-radius: 0 0 12px 12px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-            z-index: 1000;
-            max-height: 0;
-            overflow: hidden;
-            opacity: 0;
-            transform: translateY(-10px);
-            transition: all 0.3s ease;
-        }
-
-        .dropdown-options.show {
-            max-height: 200px;
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .dropdown-option {
-            padding: 15px 20px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            color: #2d3a4b;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .dropdown-option:hover {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #fff;
-        }
-
-        .dropdown-option:first-child {
-            border-top: 1px solid #e1e5e9;
-        }
-
-        .dropdown-option:last-child {
-            border-radius: 0 0 10px 10px;
-        }
-
-        .dropdown-option-icon {
-            width: 20px;
-            height: 20px;
-            opacity: 0.7;
-        }
-
-        .dropdown-option:hover .dropdown-option-icon {
             opacity: 1;
         }
 
-        
-        /* .form-group.role select {
-            display: none;
-        } */
+        .password-toggle.show {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M15 12a3 3 0 11-6 0 3 3 0 016 0z'/%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z'/%3E%3C/svg%3E");
+        }
+
+        .password-toggle.hide {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21'/%3E%3C/svg%3E");
+        }
 
         .form-group input,
         .form-group select {
             padding-left: 50px;
         }
 
-        /* Specific padding for password input */
         .form-group.password input {
             padding-left: 50px;
-            padding-right: 55px;
+            padding-right: 50px; /* Memberi ruang untuk ikon mata */
         }
 
         .modal-overlay {
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(255, 255, 255, 0.45);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
-}
-.modal-box {
-    background: #fff;
-    padding: 32px 28px 24px 28px;
-    border-radius: 16px;
-    box-shadow: 0 8px 32px rgba(44,62,80,0.18);
-    text-align: center;
-    max-width: 340px;
-    width: 100%;
-    position: relative;
-    animation: slideInDown 0.4s;
-}
-.modal-box p {
-    font-size: 17px;
-    color: #dc2626;
-    margin-bottom: 18px;
-    font-weight: 500;
-}
-.modal-link {
-    display: inline-block;
-    color: #ffffff;
-    background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
-    padding: 12px 24px;
-    border-radius: 8px;
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 14px;
-    margin-top: 12px;
-    transition: all 0.3s ease;
-    text-align: center;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-    border: none;
-    cursor: pointer;
-    min-width: 140px;
-}
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255, 255, 255, 0.45);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        .modal-box {
+            background: #fff;
+            padding: 32px 28px 24px 28px;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(44,62,80,0.18);
+            text-align: center;
+            max-width: 340px;
+            width: 100%;
+            position: relative;
+            animation: slideInDown 0.4s;
+        }
+        .modal-box p {
+            font-size: 17px;
+            color: #dc2626;
+            margin-bottom: 18px;
+            font-weight: 500;
+        }
+        .modal-link {
+            display: inline-block;
+            color: #ffffff;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            margin-top: 12px;
+            transition: all 0.3s ease;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            border: none;
+            cursor: pointer;
+            min-width: 140px;
+        }
 
-.modal-link:hover {
-    background: linear-gradient(135deg, #5a0bb5 0%, #1e5de6 100%);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(0,0,0,0.25);
-    color: #ffffff;
-}
+        .modal-link:hover {
+            background: linear-gradient(135deg, #5a0bb5 0%, #1e5de6 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+            color: #ffffff;
+        }
 
-.modal-link:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 4px rgba(255, 253, 253, 0.52);
-}
+        .modal-link:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(255, 253, 253, 0.52);
+        }
 
-.modal-link:focus {
-    outline: 2px solid #ffffff;
-    outline-offset: 2px;
-}
+        .modal-link:focus {
+            outline: 2px solid #ffffff;
+            outline-offset: 2px;
+        }
 
-/* Untuk teks di dalam modal */
-.modal-content {
-    color: #333333;
-    font-weight: 500;
-    line-height: 1.5;
-}
+        .modal-content {
+            color: #333333;
+            font-weight: 500;
+            line-height: 1.5;
+        }
 
-.modal-content .error-message {
-    color: #dc3545;
-    font-weight: 600;
-    margin-bottom: 16px;
-}
+        .modal-content .error-message {
+            color: #dc3545;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
 
-/* Alternatif untuk tombol dengan kontras lebih tinggi */
-.modal-link.high-contrast {
-    background: #2563eb;
-    color: #ffffff;
-    border: 2px solid #1d4ed8;
-}
+        .modal-link.high-contrast {
+            background: #2563eb;
+            color: #ffffff;
+            border: 2px solid #1d4ed8;
+        }
 
-.modal-link.high-contrast:hover {
-    background: #1d4ed8;
-    border-color: #1e40af;
-    color: #ffffff;
-}
-.modal-close {
-    position: absolute;
-    top: 10px; right: 16px;
-    font-size: 22px;
-    color: #888;
-    cursor: pointer;
-    font-weight: bold;
-    transition: color 0.2s;
-}
-.modal-close:hover {
-    color: #dc2626;
-}
+        .modal-link.high-contrast:hover {
+            background: #1d4ed8;
+            border-color: #1e40af;
+            color: #ffffff;
+        }
+        .modal-close {
+            position: absolute;
+            top: 10px; right: 16px;
+            font-size: 22px;
+            color: #888;
+            cursor: pointer;
+            font-weight: bold;
+            transition: color 0.2s;
+        }
+        .modal-close:hover {
+            color: #dc2626;
+        }
+
+        /* Tambahan untuk notifikasi sukses yang lebih baik */
+        .success-notification {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 500;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
+            border-left: 4px solid #047857;
+            animation: slideInDown 0.5s ease-out;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .success-notification::before {
+            content: '';
+            width: 20px;
+            height: 20px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'/%3E%3C/svg%3E");
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+        
+        .success-notification a {
+            color: white;
+            text-decoration: underline;
+            font-weight: 600;
+            margin-left: 5px;
+        }
+
     </style>
 </head>
 <body>
     <div class="register-container">
         <h2>Registrasi Akun</h2>
         
-        <!-- Example notifications - uncomment and use in your PHP -->
-        <!-- Success Message -->
-        <!-- <div class="success-message notification">
-            <span>Registrasi berhasil! Silakan <a href="login.php">login</a>.</span>
-            <button class="notification-close" onclick="this.parentElement.style.display='none'">&times;</button>
-        </div> -->
+        <?php if (isset($_SESSION['register_success'])): ?>
+        <div class="success-notification">
+            <?= htmlspecialchars($_SESSION['register_success']); ?>
+            <a href="login.php">Masuk Sekarang</a>
+        </div>
+        <?php unset($_SESSION['register_success']); endif; ?>
         
-        <!-- Error Message -->
-        <!-- <div class="error-message notification">
-            <span>Username sudah terdaftar!</span>
-            <button class="notification-close" onclick="this.parentElement.style.display='none'">&times;</button>
-        </div> -->
-        
-        <!-- Info Message -->
-        <!-- <div class="info-message notification">
-            <span>Registrasi gagal!</span>
-            <button class="notification-close" onclick="this.parentElement.style.display='none'">&times;</button>
-        </div> -->
-        
-<?php if (isset($_SESSION['register_error'])): ?>
-<div id="modalError" class="modal-overlay">
-    <div class="modal-box">
-        <span class="modal-close" onclick="closeModal()">&times;</span>
-        <p><?= $_SESSION['register_error']; ?></p>
-        <a href="login.php" class="modal-link">Masuk Sekarang</a>
-    </div>
-</div>
-<?php unset($_SESSION['register_error']); endif; ?>
+        <?php if (isset($_SESSION['register_error'])): ?>
+        <div class="error-message notification">
+            <?= htmlspecialchars($_SESSION['register_error']); ?>
+        </div>
+        <?php unset($_SESSION['register_error']); ?>
+    <?php endif; ?>
 
-<form method="POST" action="register.php">
-    <div class="form-group name">
-        <input name="nama" placeholder="Nama Lengkap" required>
+        <form method="POST" action="register.php">
+            <div class="form-group name">
+                <input name="nama" placeholder="Nama Lengkap" required>
+            </div>
+
+                <?php if (isset($_SESSION['register_success'])): ?>
+    <div class="success-notification" style="margin-bottom: 12px;">
+        <?= htmlspecialchars($_SESSION['register_success']); ?>
+        <a href="login.php">Masuk Sekarang</a>
     </div>
-    
-    <div class="form-group username">
-        <input name="username" placeholder="Username" required>
-    </div>
-    
-    <div class="form-group password">
-        <input name="password" type="password" placeholder="Password" required id="password">
-        <span class="password-toggle" onclick="togglePassword()">
-    <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <!-- Mata terbuka -->
-    <path id="eyeOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-    <path id="eyeOpen2" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-    <!-- Mata tertutup (disembunyikan dulu) -->
-    <path id="eyeClosed" visibility="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-        d="M17.94 17.94A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029M6.343 6.343A9.956 9.956 0 0112 5c4.478 0 8.268 2.943 9.542 7a9.97 9.97 0 01-1.609 3.063M9.88 9.88a3 3 0 014.24 4.24M9.88 9.88L6.343 6.343M14.12 14.12l3.537 3.537" />
-</svg>
-</span>
-    </div>
-    
-    <div class="form-group role">
-        <!-- Gunakan select biasa, bukan custom dropdown untuk memastikan data terkirim -->
-        <select name="role" required id="roleSelect">
-            <option value="">Pilih Role</option>
-            <option value="siswa">Siswa</option>
-            <option value="pembimbing">Pembimbing</option>
-        </select>
-    </div>
-    
-    <button name="register" type="submit">Register</button>
-</form>
+    <?php unset($_SESSION['register_success']); endif; ?>
+            
+            <div class="form-group username">
+                <input name="username" placeholder="Username" required>
+            </div>
+            
+            <div class="form-group password">
+                <input name="password" type="password" placeholder="Password" required id="password">
+                <span class="password-toggle show" onclick="togglePassword()"></span>
+            </div>
+            
+            <div class="form-group role">
+                <select name="role" required id="roleSelect">
+                    <option value="">Pilih Role</option>
+                    <option value="siswa">Siswa</option>
+                    <option value="pembimbing">Pembimbing</option>
+                </select>
+            </div>
+            
+            <button name="register" type="submit">Register</button>
+        </form>
         
         <p>Sudah punya akun? <a href="login.php">Login di sini</a></p>
     </div>
 
     <script>
-        // Custom dropdown functionality
-        function toggleDropdown() {
-            const dropdownOptions = document.getElementById('dropdownOptions');
-            const selectedElement = document.querySelector('.dropdown-selected');
-            
-            dropdownOptions.classList.toggle('show');
-            selectedElement.classList.toggle('active');
-        }
-
-        function selectRole(value) {
-            const selectedRole = document.getElementById('selectedRole');
-            const roleSelect = document.getElementById('roleSelect');
-            const selectedElement = document.querySelector('.dropdown-selected');
-            
-            // Update display text
-            selectedRole.textContent = value === 'siswa' ? 'Siswa' : 'Pembimbing';
-            
-            // Update hidden select value
-            roleSelect.value = value;
-            
-            // Add has-value class for styling
-            selectedElement.classList.add('has-value');
-            
-            // Close dropdown
-            document.getElementById('dropdownOptions').classList.remove('show');
-            selectedElement.classList.remove('active');
-        }
-
-        // Close dropdown when clicking outside
-        document.addEventListener('click', function(e) {
-            if (!e.target.closest('.custom-dropdown')) {
-                document.getElementById('dropdownOptions').classList.remove('show');
-                document.querySelector('.dropdown-selected').classList.remove('active');
+        // Toggle password visibility
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const toggleIcon = document.querySelector('.password-toggle');
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.classList.remove('show');
+                toggleIcon.classList.add('hide');
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.classList.remove('hide');
+                toggleIcon.classList.add('show');
             }
-        });
+        }
 
-        
-}
-
-        // Password toggle functionality
-     function togglePassword() {
-    const passwordInput = document.getElementById('password');
-    const eyeOpen = document.getElementById('eyeOpen');
-    const eyeOpen2 = document.getElementById('eyeOpen2');
-    const eyeClosed = document.getElementById('eyeClosed');
-
-    if (passwordInput.type === 'password') {
-        passwordInput.type = 'text';
-        eyeOpen.setAttribute('visibility', 'hidden');
-        eyeOpen2.setAttribute('visibility', 'hidden');
-        eyeClosed.setAttribute('visibility', 'visible');
-    } else {
-        passwordInput.type = 'password';
-        eyeOpen.setAttribute('visibility', 'visible');
-        eyeOpen2.setAttribute('visibility', 'visible');
-        eyeClosed.setAttribute('visibility', 'hidden');
-    }
-}
         // Add loading animation on form submit
         document.querySelector('form').addEventListener('submit', function(e) {
             const button = document.querySelector('button[name="register"]');
@@ -830,8 +640,10 @@ $stmt = $conn->prepare("INSERT INTO users (nama, username, password, role, creat
         });
 
         function closeModal() {
-    document.getElementById('modalError').style.display = 'none';
-}
+            document.getElementById('modalError').style.display = 'none';    
+        }
+
+        
     </script>
 </body>
 </html>

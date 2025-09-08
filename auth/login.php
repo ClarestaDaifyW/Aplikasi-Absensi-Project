@@ -114,17 +114,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       font-size: 28px;
       font-weight: 600;
     }
-
-    .pesan-error {
-      background: #fee;
-      color: #c33;
-      padding: 12px;
-      border-radius: 8px;
-      margin-bottom: 20px;
-      border: 1px solid #fcc;
-      font-size: 14px;
-      text-align: center;
-    }
+    
+.pesan-error {
+  background: #fee;
+  color: #c33;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  border: 1px solid #fcc;
+  font-size: 14px;
+  text-align: center;
+  font-weight: 500;
+}
 
     .pesan-sukses {
       background: #efe;
@@ -293,8 +294,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   <?php if (!empty($error)): ?>
     <div class="pesan-error"><?= $error ?></div>
   <?php endif; ?>
-  <?php if (!empty($success)): ?>
-    <div class="pesan-sukses"><?= $success ?></div>
+ <?php if (isset($_SESSION['register_success'])): ?>
+    <div class="pesan-sukses" style="margin-bottom:12px; font-size:14px; padding:8px 10px;">
+      <span style="font-weight:500;">Akun telah berhasil dibuat!</span> Silakan masuk.
+    </div>
+    <?php unset($_SESSION['register_success']); ?>
   <?php endif; ?>
   <form method="POST">
     <input name="username" placeholder="Username" required>
@@ -332,3 +336,4 @@ function togglePw() {
 </script>
 </body>
 </html>
+
