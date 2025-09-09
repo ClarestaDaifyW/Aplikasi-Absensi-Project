@@ -701,6 +701,17 @@ button[type="submit"]:hover {
     <button onclick="closeLogoutModal()" style="background:#f3f4f6; color:#2d3a4b; border:none; border-radius:6px; padding:8px 22px; font-size:1rem; font-weight:500; cursor:pointer; transition:background 0.2s;">Batal</button>
   </div>
 </div>
+
+<!-- Modal Konfirmasi Validasi -->
+<div id="validasiModal" style="display:none; position:fixed; z-index:3000; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.35); align-items:center; justify-content:center;">
+  <div style="background:#fff; border-radius:16px; max-width:340px; margin:auto; padding:32px 24px 20px 24px; box-shadow:0 8px 32px rgba(79,140,255,0.18); text-align:center; position:relative;">
+    <div style="font-size:1.15rem; font-weight:600; color:#2d3a4b; margin-bottom:10px;">Konfirmasi Validasi</div>
+    <div style="color:#64748b; font-size:1rem; margin-bottom:24px;">Setujui aktivitas ini?</div>
+    <button id="btnValidasiYa" style="background:#22c55e; color:#fff; border:none; border-radius:6px; padding:8px 22px; font-size:1rem; font-weight:500; margin-right:10px; cursor:pointer; transition:background 0.2s;">Ya</button>
+    <button onclick="closeValidasiModal()" style="background:#f3f4f6; color:#2d3a4b; border:none; border-radius:6px; padding:8px 22px; font-size:1rem; font-weight:500; cursor:pointer; transition:background 0.2s;">Batal</button>
+  </div>
+</div>
+<!-- END Modal Konfirmasi Validasi -->
 <!-- END Modal Logout -->
         </div>
     </div>
@@ -801,6 +812,38 @@ function togglePasswordSiswa() {
         eyePath.setAttribute("d", "M1.5 12S5.5 5.5 12 5.5 22.5 12 22.5 12 18.5 18.5 12 18.5 1.5 12 1.5 12Z");
         eyeCircle.style.display = "inline";
     }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    let formToSubmit = null;
+    document.querySelectorAll('form[action="../proses/proses_validasi.php"]').forEach(function(form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            formToSubmit = form;
+            document.getElementById('validasiModal').style.display = 'flex';
+        });
+    });
+    document.getElementById('btnValidasiYa').onclick = function() {
+        if (formToSubmit) {
+            // Submit via AJAX agar tidak reload seluruh halaman/
+            const formData = new FormData(formToSubmit);
+            fetch(formToSubmit.action, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.text())
+            .then(() => {
+                document.getElementById('validasiModal').style.display = 'none';
+                // Redirect ke section aktivitas (validasi)
+                showSection('validasi');
+            });
+            formToSubmit = null;
+        }
+    };
+});
+function closeValidasiModal() {
+    document.getElementById('validasiModal').style.display = 'none';
+    formToSubmit = null;
 }
     </script>
 
